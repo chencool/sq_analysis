@@ -1,0 +1,102 @@
+drop table  T_NODE;
+create table T_NODE
+(
+NODE_ID int not null identity(1,1),
+NODE_NAME varchar(50) not null,
+PARENT_ID int not null,
+GATE_ID int not null,
+NODE_TYPE int not null,
+PROJECT_ID int not null
+);
+
+drop table T_GATE;
+create table T_GATE
+(
+GATE_ID int not null identity(1,1),
+GATE_NAME varchar(50) not null,
+GATE_TYPE int not null,
+PROJECT_ID int not null
+);
+
+drop table T_NODE_TYPE_DIC;
+create table T_NODE_TYPE_DIC
+(
+NODE_TYPE int not null,
+NODE_TYPE_DESC varchar(50) not null
+);
+
+drop table T_GATE_TYPE_DIC;
+create table T_GATE_TYPE_DIC
+(
+GATE_TYEP int not null,
+GATE_TYEP_DESC varchar(50) not null
+);
+
+
+insert into T_NODE_TYPE_DIC (NODE_TYPE,NODE_TYPE_DESC)values(1,'ROOT');
+insert into T_NODE_TYPE_DIC (NODE_TYPE,NODE_TYPE_DESC)values(2,'BRANCH');
+insert into T_NODE_TYPE_DIC (NODE_TYPE,NODE_TYPE_DESC)values(3,'LEAF');
+
+insert into T_GATE_TYPE_DIC (GATE_TYEP,GATE_TYEP_DESC)values(1,'AND');
+insert into T_GATE_TYPE_DIC (GATE_TYEP,GATE_TYEP_DESC)values(2,'OR');
+insert into T_GATE_TYPE_DIC (GATE_TYEP,GATE_TYEP_DESC)values(3,'XOR');
+
+
+
+
+
+
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G001',1);
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G002',1);
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G003',1);
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G004',3);
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G005',3);
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G006',2);
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G007',1);
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G008',2);
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G009',1);
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G010',3);
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G011',1);
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G012',1);
+insert into T_GATE(GATE_NAME,GATE_TYPE)values('G013',2);
+
+
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E001',-1,-1,1,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E002',1,1,2,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E003',1,1,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E004',1,1,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E005',1,2,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E006',1,2,2,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E007',1,2,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E008',1,3,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E009',1,3,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E010',1,3,2,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E011',1,4,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E012',1,4,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E013',1,5,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E014',1,5,2,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E015',1,6,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E016',1,6,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E017',1,6,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E018',1,6,2,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E019',2,7,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E020',2,7,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E021',2,7,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E022',6,8,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E023',6,8,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E024',6,8,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E025',10,9,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E026',10,9,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E027',14,10,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E028',14,10,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E029',14,11,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E030',14,11,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E031',18,12,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E032',18,12,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E033',16,13,3,-1);
+insert into T_NODE(NODE_NAME,PARENT_ID,GATE_ID,NODE_TYPE,PROJECT_ID)values('E034',16,13,3,-1);
+
+select * from T_NODE;
+select * from T_GATE;
+select * from T_NODE_TYPE_DIC;
+select * from T_GATE_TYPE_DIC;
