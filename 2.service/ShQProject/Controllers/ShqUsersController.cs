@@ -25,13 +25,13 @@ namespace Dxc.Shq.WebApi.Controllers
 
         [HttpGet]
         [Route("api/ShqUsers/All")]
-        public IQueryable<ShqUserRequestViewModel> GetShqUses()
+        public IQueryable<ShqUserRespondViewModel> GetShqUses()
         {
             var list = db.ShqUsers.ToList();
-            List<ShqUserRequestViewModel> toList = new List<ShqUserRequestViewModel>();
+            List<ShqUserRespondViewModel> toList = new List<ShqUserRespondViewModel>();
             foreach(var item in list)
             {
-                toList.Add(new ShqUserRequestViewModel(item, db));
+                toList.Add(new ShqUserRespondViewModel(item, db));
             }
 
             return toList.AsQueryable();
@@ -40,7 +40,7 @@ namespace Dxc.Shq.WebApi.Controllers
 
         [HttpGet]
         [Route("api/ShqUsers")]
-        [ResponseType(typeof(ShqUserRequestViewModel))]
+        [ResponseType(typeof(ShqUserRespondViewModel))]
         public async Task<IHttpActionResult> GetShqUserByEmail(string email)
         {
             ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.Email == email).Include("IdentityUser").FirstOrDefaultAsync();
@@ -49,13 +49,13 @@ namespace Dxc.Shq.WebApi.Controllers
                 return NotFound();
             }
 
-            return Ok(new ShqUserRequestViewModel(shqUser,db));
+            return Ok(new ShqUserRespondViewModel(shqUser,db));
         }
 
         [Authorize(Roles = ShqConstants.AdministratorRole)]
         [HttpPost]
         [Route("api/ShqUsers/Add")]
-        [ResponseType(typeof(ShqUserRequestViewModel))]
+        [ResponseType(typeof(ShqUserRespondViewModel))]
         public async Task<IHttpActionResult> Add(ShqUserRequestViewModel shqUserView)
         {
             if (!ModelState.IsValid)
@@ -88,8 +88,8 @@ namespace Dxc.Shq.WebApi.Controllers
             var shqUser = shqUserView.ToShqUser();
             shqUser.IdentityUserId = user.Id;
             shqUser.IdentityUser = user;
-            shqUser.CreateById = db.ShqUsers.Where(u => u.IdentityUser.UserName == System.Web.HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
-            shqUser.LastModifiedById = shqUser.CreateById;
+            shqUser.CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == System.Web.HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
+            shqUser.LastModifiedById = shqUser.CreatedById;
             db.ShqUsers.Add(shqUser);
 
             var store = new ShqUserStore();
@@ -111,12 +111,12 @@ namespace Dxc.Shq.WebApi.Controllers
                 }
             }
 
-            return Ok(new ShqUserRequestViewModel(shqUser, db));
+            return Ok(new ShqUserRespondViewModel(shqUser, db));
         }
 
         [HttpPut]
         [Route("api/ShqUsers/Update")]
-        [ResponseType(typeof(ShqUserRequestViewModel))]
+        [ResponseType(typeof(ShqUserRespondViewModel))]
         public async Task<IHttpActionResult> Update(ShqUserRequestViewModel shqUserView)
         {
             if (!ModelState.IsValid)
@@ -147,19 +147,19 @@ namespace Dxc.Shq.WebApi.Controllers
                 shqUser.IdentityUser.PhoneNumber= shqUserView.PhoneNumber;
 
                 shqUser.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == System.Web.HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
-                shqUser.LastModfiedDate = DateTime.Now;
+                shqUser.LastModfiedTime = DateTime.Now;
                 //var store = new ShqUserStore();
                 //await store.SetPasswordHashAsync(shqUser.IdentityUser, new ShqUserManager().PasswordHasher.HashPassword(shqUserView.Password));
 
                 await db.SaveChangesAsync();
             }
 
-            return Ok(new ShqUserRequestViewModel(shqUser, db));
+            return Ok(new ShqUserRespondViewModel(shqUser, db));
         }
 
         [HttpPut]
         [Route("api/ShqUsers/ChangePassword")]
-        [ResponseType(typeof(ShqUserRequestViewModel))]
+        [ResponseType(typeof(ShqUserRespondViewModel))]
         public async Task<IHttpActionResult> ChangePassword(ShqUserPasswordViewModel password)
         {
             if (!ModelState.IsValid)
@@ -193,7 +193,12 @@ namespace Dxc.Shq.WebApi.Controllers
 
                 if (result.Succeeded == true)
                 {
-                    return Ok(new ShqUserRequestViewModel(shqUser, db));
+
+                    shqUser.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == System.Web.HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
+                    shqUser.LastModfiedTime = DateTime.Now;
+                    await db.SaveChangesAsync();
+
+                    return Ok(new ShqUserRespondViewModel(shqUser, db));
                 }
                 else
                 {
@@ -206,7 +211,7 @@ namespace Dxc.Shq.WebApi.Controllers
         [Authorize(Roles = ShqConstants.AdministratorRole)]
         [HttpPut]
         [Route("api/ShqUsers/Disable")]
-        [ResponseType(typeof(ShqUserRequestViewModel))]
+        [ResponseType(typeof(ShqUserRespondViewModel))]
         public async Task<IHttpActionResult> DisableShqUser(string email)
         {
             ShqUser shqUser = await db.ShqUsers.FirstOrDefaultAsync(item => item.EmailAddress == email);
@@ -217,11 +222,11 @@ namespace Dxc.Shq.WebApi.Controllers
 
             shqUser.Status = ShqConstants.UserStatusDisable;
             shqUser.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == System.Web.HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
-            shqUser.LastModfiedDate = DateTime.Now;
+            shqUser.LastModfiedTime = DateTime.Now;
             //db.ShqUsers.Remove(shqUser);
             await db.SaveChangesAsync();
 
-            return Ok(new ShqUserRequestViewModel(shqUser, db));
+            return Ok(new ShqUserRespondViewModel(shqUser, db));
         }
 
         

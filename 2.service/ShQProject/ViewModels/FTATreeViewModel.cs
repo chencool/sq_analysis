@@ -28,9 +28,9 @@ namespace Dxc.Shq.WebApi.ViewModels
     {
        
 
-        public ShqUserRequestViewModel CreateBy { get; set; }
+        public ShqUserRequestViewModel CreatedBy { get; set; }
 
-        public string CreateTime { get; set; }
+        public string CreatedTime { get; set; }
 
         public FTATreeViewModel():base()
         {
@@ -41,8 +41,8 @@ namespace Dxc.Shq.WebApi.ViewModels
             Id = tree.Id;
             Content = tree.Content;
             ProjectId = tree.FTAProject.ProjectId;
-            CreateBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == tree.CreateById).FirstOrDefault(), db);
-            CreateTime = tree.CreateTime.ToString();
+            CreatedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == tree.CreatedById).FirstOrDefault(), db);
+            CreatedTime = tree.CreatedTime.ToString();
         }
     }
 }

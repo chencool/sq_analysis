@@ -43,7 +43,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
             }
 
-            var tr = docs.FTATrees.OrderByDescending(item => item.CreateTime).FirstOrDefault();
+            var tr = docs.FTATrees.OrderByDescending(item => item.CreatedTime).FirstOrDefault();
             if (tr != null)
             {
                 return Ok(new FTATreeViewModel(tr, db));
@@ -80,7 +80,7 @@ namespace Dxc.Shq.WebApi.Controllers
             var tr = docs.FTATrees.Where(item => item.Id == tree.Id).FirstOrDefault();
             if (tr == null)
             {
-                FTATree ftaTree = new FTATree() { Id = tree.Id, FTAProjectId = docs.Id, FTAProject = docs, Content = tree.Content, CreateById = shqUser.IdentityUserId, CreateTime = DateTime.Now, LastModifiedById = shqUser.IdentityUserId, LastModfiedDate = DateTime.Now };
+                FTATree ftaTree = new FTATree() { Id = tree.Id, FTAProjectId = docs.Id, FTAProject = docs, Content = tree.Content, CreatedById = shqUser.IdentityUserId, CreatedTime = DateTime.Now, LastModifiedById = shqUser.IdentityUserId, LastModfiedTime = DateTime.Now };
                 docs.FTATrees.Add(ftaTree);
                 await db.SaveChangesAsync();
 

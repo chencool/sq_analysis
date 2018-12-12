@@ -169,14 +169,14 @@ namespace Dxc.Shq.WebApi.Areas.HelpPage
         {
             Type[] genericArgs = type.GetGenericArguments();
             object[] parameterValues = new object[genericArgs.Length];
-            bool failedToCreateTuple = true;
+            bool failedToCreatedTuple = true;
             ObjectGenerator objectGenerator = new ObjectGenerator();
             for (int i = 0; i < genericArgs.Length; i++)
             {
                 parameterValues[i] = objectGenerator.GenerateObject(genericArgs[i], createdObjectReferences);
-                failedToCreateTuple &= parameterValues[i] == null;
+                failedToCreatedTuple &= parameterValues[i] == null;
             }
-            if (failedToCreateTuple)
+            if (failedToCreatedTuple)
             {
                 return null;
             }

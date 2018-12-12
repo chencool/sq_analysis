@@ -5,12 +5,12 @@
 
     public class DataBase
     {
-        public string CreateById { get; set; }
+        public string CreatedById { get; set; }
 
-        public DateTime CreateTime { get; set; } = DateTime.Now;
+        public DateTime CreatedTime { get; set; } = DateTime.Now;
         
         public string LastModifiedById { get; set; }
 
-        public DateTime LastModfiedDate { get; set; } = DateTime.Now;
+        public DateTime LastModfiedTime { get; set; } = DateTime.Now;
     }
 }

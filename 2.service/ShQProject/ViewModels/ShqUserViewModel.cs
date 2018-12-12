@@ -1,7 +1,10 @@
 ﻿using Dxc.Shq.WebApi.Core;
 using Dxc.Shq.WebApi.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
 
 namespace Dxc.Shq.WebApi.ViewModels
 {
@@ -45,8 +48,8 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         public string RealName { get; set; }
 
-        [Required]
         private string emailAddress;
+        [Required]
         public string EmailAddress
         {
             get
@@ -91,5 +94,26 @@ namespace Dxc.Shq.WebApi.ViewModels
                 Department = this.Department,
             };
         }
+    }
+    public class ShqUserRespondViewModel : ShqUserRequestViewModel
+    {
+        public ShqUserRespondViewModel() : base()
+        {
+        }
+
+        public ShqUserRespondViewModel(ShqUser shqUser, ShqContext db) : base(shqUser, db)
+        {
+            CreatedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == shqUser.CreatedById).FirstOrDefault(), db);
+            CreatedTime = shqUser.CreatedTime.ToString();
+
+            LastModifiedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == shqUser.LastModifiedById).FirstOrDefault(), db);
+            LastModfiedTime = shqUser.LastModfiedTime.ToString();
+        }
+
+        public ShqUserRequestViewModel CreatedBy { get; set; }
+        public string CreatedTime { get; set; }
+
+        public ShqUserRequestViewModel LastModifiedBy { get; set; }
+        public string LastModfiedTime { get; set; }
     }
 }

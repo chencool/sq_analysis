@@ -33,8 +33,8 @@ namespace Dxc.Shq.WebApi.ViewModels
             p.Name = Name;
             p.Description = Description;
             p.Type = Type;
-            //p.CreateBy = CreateBy.ToShqUser();
-            //p.CreateTime = DateTime.Parse(CreateTime);
+            //p.CreatedBy = CreatedBy.ToShqUser();
+            //p.CreatedTime = DateTime.Parse(CreatedTime);
 
             return p;
         }
@@ -44,9 +44,12 @@ namespace Dxc.Shq.WebApi.ViewModels
     {
         public int Privilege { get; set; }
 
-        public ShqUserRequestViewModel CreateBy { get; set; }
+        public ShqUserRequestViewModel CreatedBy { get; set; }
 
-        public string CreateTime { get; set; }
+        public string CreatedTime { get; set; }
+
+        public ShqUserRequestViewModel LastModifiedBy { get; set; }
+        public string LastModfiedTime { get; set; }
 
         public ProjectViewModel():base()
         {
@@ -64,8 +67,11 @@ namespace Dxc.Shq.WebApi.ViewModels
             Description = project.Description;
             Type = project.Type;
 
-            CreateBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == project.CreateById).FirstOrDefault(), db);
-            CreateTime = project.CreateTime.ToString();
+            CreatedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == project.CreatedById).FirstOrDefault(), db);
+            CreatedTime = project.CreatedTime.ToString();
+
+            LastModifiedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == project.LastModifiedById).FirstOrDefault(), db);
+            LastModfiedTime = project.LastModfiedTime.ToString();
         }
 
         public static List<ProjectViewModel> ToProjectViewModelList(List<Project> projects, ShqContext db)

@@ -60,13 +60,13 @@ namespace Dxc.Shq.WebApi.Core
             context.SaveChanges();
         }
 
-        public ShqUser CreateUser(ShqContext context, string userName, string email, string password, string role, ShqUser createBy)
+        public ShqUser CreateUser(ShqContext context, string userName, string email, string password, string role, ShqUser CreatedBy)
         {
             var user = context.Users.Add(new IdentityUser(userName) { Email = email, EmailConfirmed = true });
             user.Roles.Add(new IdentityUserRole { RoleId = role });
 
-            var shqUser = new ShqUser() { IdentityUserId = user.Id, IdentityUser = user, CreateTime = DateTime.Now, Status = ShqConstants.UserStatusAvailable, EmailAddress = email };
-            shqUser.CreateById = createBy == null ? shqUser.IdentityUserId : createBy.IdentityUserId;
+            var shqUser = new ShqUser() { IdentityUserId = user.Id, IdentityUser = user, CreatedTime = DateTime.Now, Status = ShqConstants.UserStatusAvailable, EmailAddress = email };
+            shqUser.CreatedById = CreatedBy == null ? shqUser.IdentityUserId : CreatedBy.IdentityUserId;
             context.ShqUsers.Add(shqUser);
 
             context.SaveChanges();

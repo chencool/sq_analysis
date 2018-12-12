@@ -21,7 +21,7 @@ namespace Dxc.Shq.WebApi.Core
                 }
 
                 var shqUser = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault();
-                List<Project> projects = new List<Project>(db.Projects.Where(item => item.CreateById == shqUser.IdentityUserId).ToList());
+                List<Project> projects = new List<Project>(db.Projects.Where(item => item.CreatedById == shqUser.IdentityUserId).ToList());
                 foreach (var item in shqUser.ProjectsAccess)
                 {
                     if (item.Privilege == ShqConstants.AllowProjectRead || item.Privilege == ShqConstants.AllowProjectUpdate)
@@ -51,7 +51,7 @@ namespace Dxc.Shq.WebApi.Core
                 else
                 {
                     var shqUser = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault();
-                    List<Project> projects = new List<Project>(db.Projects.Where(item => item.CreateById == shqUser.IdentityUserId).ToList());
+                    List<Project> projects = new List<Project>(db.Projects.Where(item => item.CreatedById == shqUser.IdentityUserId).ToList());
                     foreach (var item in projects)
                     {
                         ProjectViewModel pv = new ProjectViewModel(item, db);
@@ -83,7 +83,7 @@ namespace Dxc.Shq.WebApi.Core
             using (ShqContext db = new ShqContext())
             {
                 var shqUser = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault();
-                if (project.CreateById == shqUser.IdentityUserId)
+                if (project.CreatedById == shqUser.IdentityUserId)
                 {
                     return true;
                 }
@@ -111,7 +111,7 @@ namespace Dxc.Shq.WebApi.Core
             using (ShqContext db = new ShqContext())
             {
                 var shqUser = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault();
-                if (project.CreateById == shqUser.IdentityUserId)
+                if (project.CreatedById == shqUser.IdentityUserId)
                 {
                     return true;
                 }
