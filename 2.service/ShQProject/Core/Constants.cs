@@ -13,5 +13,9 @@ namespace Dxc.Shq.WebApi.Core
         public const int NoProjectAccess = 0;
         public const int AllowProjectRead = 1;
         public const int AllowProjectUpdate = 2;
+
+        public const int UserStatusException = 0;
+        public const int UserStatusAvailable = 1;
+        public const int UserStatusDisable = 2;
     }
 }

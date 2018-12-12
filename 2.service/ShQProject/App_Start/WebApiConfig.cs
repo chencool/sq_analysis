@@ -13,9 +13,10 @@
         {
             // Web API configuration and services
             var cors = new EnableCorsAttribute("*", "*", "*");
+            cors.SupportsCredentials = true;
             config.EnableCors(cors);
 
-            config.MessageHandlers.Add(new PreflightRequestsHandler());
+            //config.MessageHandlers.Add(new PreflightRequestsHandler());
 
             // Web API routes
             config.MapHttpAttributeRoutes();
@@ -28,21 +29,21 @@
         }
     }
 
-    public class PreflightRequestsHandler : DelegatingHandler
-    {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            if (request.Headers.Contains("Origin") && request.Method.Method == "OPTIONS")
-            {
-                var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK };
-                response.Headers.Add("Access-Control-Allow-Origin", "*");
-                response.Headers.Add("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
-                response.Headers.Add("Access-Control-Allow-Methods", "*");
-                var tsc = new TaskCompletionSource<HttpResponseMessage>();
-                tsc.SetResult(response);
-                return tsc.Task;
-            }
-            return base.SendAsync(request, cancellationToken);
-        }
-    }
+    //public class PreflightRequestsHandler : DelegatingHandler
+    //{
+    //    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    //    {
+    //        if (request.Headers.Contains("Origin") && request.Method.Method == "OPTIONS")
+    //        {
+    //            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK };
+    //            response.Headers.Add("Access-Control-Allow-Origin", "*");
+    //            response.Headers.Add("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
+    //            response.Headers.Add("Access-Control-Allow-Methods", "*");
+    //            var tsc = new TaskCompletionSource<HttpResponseMessage>();
+    //            tsc.SetResult(response);
+    //            return tsc.Task;
+    //        }
+    //        return base.SendAsync(request, cancellationToken);
+    //    }
+    //}
 }

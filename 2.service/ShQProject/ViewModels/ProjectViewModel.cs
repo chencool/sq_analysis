@@ -44,7 +44,7 @@ namespace Dxc.Shq.WebApi.ViewModels
     {
         public int Privilege { get; set; }
 
-        public ShqUserViewModel CreateBy { get; set; }
+        public ShqUserRequestViewModel CreateBy { get; set; }
 
         public string CreateTime { get; set; }
 
@@ -64,7 +64,7 @@ namespace Dxc.Shq.WebApi.ViewModels
             Description = project.Description;
             Type = project.Type;
 
-            CreateBy = new ShqUserViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == project.CreateById).FirstOrDefault(), db);
+            CreateBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == project.CreateById).FirstOrDefault(), db);
             CreateTime = project.CreateTime.ToString();
         }
 

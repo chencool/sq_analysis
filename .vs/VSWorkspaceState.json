@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\1.doc",
+    "\\2.service",
+    "\\2.service\\ShQProject",
+    "\\2.service\\ShQProject\\Controllers",
+    "\\2.service\\ShQProject\\Identity",
+    "\\2.service\\ShQProject\\Models",
+    "\\2.service\\ShQProject\\Properties",
+    "\\2.service\\ShQProject\\ViewModels"
+  ],
+  "SelectedNode": "\\2.service\\ShQProject\\ViewModels\\FTATreeViewModel.cs",
+  "PreviewInSolutionExplorer": false
+}

@@ -8,7 +8,7 @@ using System.Web;
 
 namespace Dxc.Shq.WebApi.ViewModels
 {
-    public class FTATreeViewModel
+    public class FTATreeRequestViewModel
     {
         [Required]
         public Guid Id { get; set; }
@@ -19,13 +19,21 @@ namespace Dxc.Shq.WebApi.ViewModels
         [Required]
         public Guid ProjectId { get; set; }
 
-        public ShqUserViewModel CreateBy { get; set; }
+        public FTATreeRequestViewModel()
+        {
+        }
+    }
+
+    public class FTATreeViewModel: FTATreeRequestViewModel
+    {
+       
+
+        public ShqUserRequestViewModel CreateBy { get; set; }
 
         public string CreateTime { get; set; }
 
-        public FTATreeViewModel()
+        public FTATreeViewModel():base()
         {
-
         }
 
         public FTATreeViewModel(FTATree tree, ShqContext db)
@@ -33,7 +41,7 @@ namespace Dxc.Shq.WebApi.ViewModels
             Id = tree.Id;
             Content = tree.Content;
             ProjectId = tree.FTAProject.ProjectId;
-            CreateBy = new ShqUserViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == tree.CreateById).FirstOrDefault(), db);
+            CreateBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == tree.CreateById).FirstOrDefault(), db);
             CreateTime = tree.CreateTime.ToString();
         }
     }

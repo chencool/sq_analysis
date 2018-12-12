@@ -25,7 +25,7 @@ namespace Dxc.Shq.WebApi.Controllers
         [Route("api/FTAProjects/GetTree")]
         // POST: api/FTAProjects
         [ResponseType(typeof(FTATreeViewModel))]
-        public async Task<IHttpActionResult> GetFTAProjectTree(Guid projectId)
+        public IHttpActionResult GetFTAProjectTree(Guid projectId)
         {
             if (!ModelState.IsValid)
             {
@@ -43,22 +43,22 @@ namespace Dxc.Shq.WebApi.Controllers
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
             }
 
-            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).Include("IdentityUser").FirstOrDefaultAsync();
             var tr = docs.FTATrees.OrderByDescending(item => item.CreateTime).FirstOrDefault();
-            FTATreeViewModel tree = new FTATreeViewModel();
-            if(tr!=null)
+            if (tr != null)
             {
-                tree = new FTATreeViewModel(tr, db);
+                return Ok(new FTATreeViewModel(tr, db));
             }
-
-            return Ok(tree);
+            else
+            {
+                return NotFound();
+            }
         }
 
         [HttpPost]
         [Route("api/FTAProjects/AddTree")]
         // POST: api/FTAProjects
         [ResponseType(typeof(FTATreeViewModel))]
-        public async Task<IHttpActionResult> AddFTAProjectTree(FTATreeViewModel tree)
+        public async Task<IHttpActionResult> AddFTAProjectTree(FTATreeRequestViewModel tree)
         {
             if (!ModelState.IsValid)
             {
@@ -80,12 +80,11 @@ namespace Dxc.Shq.WebApi.Controllers
             var tr = docs.FTATrees.Where(item => item.Id == tree.Id).FirstOrDefault();
             if (tr == null)
             {
-                tree.CreateBy = new ShqUserViewModel(shqUser, db);
-                tree.CreateTime = DateTime.Now.ToString();
-                docs.FTATrees.Add(new FTATree() { Id = tree.Id, Content = tree.Content, CreateById = shqUser.IdentityUserId, CreateTime = DateTime.Now, LastModifiedById = shqUser.IdentityUserId, LastModfiedDate = DateTime.Now });
-
+                FTATree ftaTree = new FTATree() { Id = tree.Id, FTAProjectId = docs.Id, FTAProject = docs, Content = tree.Content, CreateById = shqUser.IdentityUserId, CreateTime = DateTime.Now, LastModifiedById = shqUser.IdentityUserId, LastModfiedDate = DateTime.Now };
+                docs.FTATrees.Add(ftaTree);
                 await db.SaveChangesAsync();
-                return Ok(tree);
+
+                return Ok(new FTATreeViewModel(ftaTree, db));
             }
             else
             {

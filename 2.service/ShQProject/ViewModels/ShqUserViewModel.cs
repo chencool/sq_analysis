@@ -5,22 +5,23 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Dxc.Shq.WebApi.ViewModels
 {
-    public class ShqUserViewModel
+    public class ShqUserRequestViewModel
     {
-        public ShqUserViewModel()
+        public ShqUserRequestViewModel()
         {
         }
 
-        public ShqUserViewModel(ShqUser shqUser, ShqContext db)
+        public ShqUserRequestViewModel(ShqUser shqUser, ShqContext db)
         {
             if (shqUser == null)
             {
                 return;
             }
 
-            Enabled = shqUser.Enabled;
+            Status = shqUser.Status;
             //LoginName = shqUser.IdentityUser.UserName;
             RealName = shqUser.RealName;
+            Description = shqUser.Description;
             EmailAddress = shqUser.EmailAddress;
             PhoneNumber = shqUser.PhoneNumber;
             Address = shqUser.Address;
@@ -35,7 +36,9 @@ namespace Dxc.Shq.WebApi.ViewModels
         }
 
         [Required]
-        public bool Enabled { get; set; }
+        public int Status { get; set; }
+
+        public string Description { get; set; }
 
         //[Required]
         //public string LoginName { get; set; }
@@ -43,7 +46,22 @@ namespace Dxc.Shq.WebApi.ViewModels
         public string RealName { get; set; }
 
         [Required]
-        public string EmailAddress { get; set; }
+        private string emailAddress;
+        public string EmailAddress
+        {
+            get
+            {
+                return emailAddress;
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(value) == false)
+                {
+                    emailAddress = value.Trim().ToLower();
+                }
+            }
+        }
+
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
 
@@ -62,8 +80,9 @@ namespace Dxc.Shq.WebApi.ViewModels
         {
             return new ShqUser
             {
-                Enabled = this.Enabled,
+                Status = this.Status,
                 RealName = this.RealName,
+                Description = this.Description,
                 EmailAddress = this.EmailAddress,
                 PhoneNumber = this.PhoneNumber,
                 Address = this.Address,
