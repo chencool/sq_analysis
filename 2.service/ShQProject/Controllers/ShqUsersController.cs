@@ -136,7 +136,8 @@ namespace Dxc.Shq.WebApi.Controllers
             else
             {
                 shqUser.Address = shqUserView.Address;
-                shqUser.EmailAddress = shqUserView.EmailAddress;
+                shqUser.Description = shqUserView.Description;
+                //shqUser.EmailAddress = shqUserView.EmailAddress;
                 shqUser.Status = shqUserView.Status;
                 shqUser.PhoneNumber = shqUserView.PhoneNumber;
                 shqUser.RealName = shqUserView.RealName;
