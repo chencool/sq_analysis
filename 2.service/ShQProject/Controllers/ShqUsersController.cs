@@ -37,6 +37,20 @@ namespace Dxc.Shq.WebApi.Controllers
             return toList.AsQueryable();
         }
 
+        [HttpGet]
+        [Route("api/ShqUsers")]
+        [ResponseType(typeof(ShqUserRespondViewModel))]
+        public async Task<IHttpActionResult> GetShqUserByStatus(int status)
+        {
+            ShqUser shqUser = await db.ShqUsers.Where(item => item.Status == status).Include("IdentityUser").FirstOrDefaultAsync();
+            if (shqUser == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new ShqUserRespondViewModel(shqUser, db));
+        }
+
 
         [HttpGet]
         [Route("api/ShqUsers")]

@@ -16,6 +16,8 @@ namespace Dxc.Shq.WebApi.Models
         public Guid FTAProjectId { get; set; }
         public FTAProject FTAProject { get; set; }
 
+        public int AnalysisStatus { get; set; }
+
         public string Content { get; set; }
     }
 }

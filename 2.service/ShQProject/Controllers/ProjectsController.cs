@@ -89,8 +89,18 @@ namespace Dxc.Shq.WebApi.Controllers
             db.Entry(pro).State = EntityState.Modified;
             pro.Name = project.Name;
             pro.Description = project.Description;
+            pro.Tag = project.Tag;
             pro.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
             pro.LastModfiedTime = DateTime.Now;
+
+            if (project.UsersPrivileges.Count > 0)
+            {
+                pro.ProjectsAccess.RemoveAll(item=>item.ProjectId==pro.Id);
+                foreach (var item in project.UsersPrivileges)
+                {
+                    await AddOrUpdateProjectAccess(new ProjectShqUsersViewModel() { ProjectId = project.Id, EmailAddress = item.EmailAddress, Privilege = item.Privilege });
+                }
+            }
 
             await db.SaveChangesAsync();
 
@@ -125,6 +135,14 @@ namespace Dxc.Shq.WebApi.Controllers
             if (project.Type == "FTAProject")
             {
                 db.FTAProjects.Add(new FTAProject() { Id = Guid.NewGuid(), ProjectId = projectView.Id });
+            }
+
+            if (projectView.UsersPrivileges.Count > 0)
+            {
+                foreach (var item in projectView.UsersPrivileges)
+                {
+                    await AddOrUpdateProjectAccess(new ProjectShqUsersViewModel() { ProjectId = project.Id, EmailAddress = item.EmailAddress, Privilege = item.Privilege });
+                }
             }
 
             await db.SaveChangesAsync();
@@ -209,7 +227,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
             }
 
-            ShqUser shqUser = await db.ShqUsers.Include("ProjectsAccess").Where(item => item.EmailAddress== projectShqUsersViewModel.EmailAddress).FirstOrDefaultAsync();
+            ShqUser shqUser = await db.ShqUsers.Include("ProjectsAccess").Where(item => item.EmailAddress == projectShqUsersViewModel.EmailAddress).FirstOrDefaultAsync();
             if (shqUser == null)
             {
                 return NotFound();
