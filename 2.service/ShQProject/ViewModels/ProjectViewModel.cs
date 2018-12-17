@@ -84,7 +84,7 @@ namespace Dxc.Shq.WebApi.ViewModels
             Type = project.Type;
             Tag = project.Tag;
 
-            var ps = project.ProjectsAccess.Where(item => item.ProjectId == project.Id).ToList();
+            var ps = db.ProjectShqUsers.Include("ShqUser").Where(item => item.ProjectId == project.Id).ToList();
             foreach(var item in ps)
             {
                 this.UsersPrivileges.Add(new ViewModels.UsersPrivileges() { RealName = item.ShqUser.RealName, EmailAddress = item.ShqUser.EmailAddress, Privilege = item.Privilege });

@@ -95,10 +95,19 @@ namespace Dxc.Shq.WebApi.Controllers
 
             if (project.UsersPrivileges.Count > 0)
             {
-                pro.ProjectsAccess.RemoveAll(item=>item.ProjectId==pro.Id);
+                pro.ProjectsAccess.RemoveAll(item => item.ProjectId == pro.Id);
                 foreach (var item in project.UsersPrivileges)
                 {
-                    await AddOrUpdateProjectAccess(new ProjectShqUsersViewModel() { ProjectId = project.Id, EmailAddress = item.EmailAddress, Privilege = item.Privilege });
+                    var newAccess = new ProjectShqUsers()
+                    {
+                        ProjectId = project.Id,
+                        ShqUserId = db.ShqUsers.Where(u => u.EmailAddress == item.EmailAddress).FirstOrDefault().IdentityUserId,
+                        Privilege = item.Privilege,
+                        CreatedById = pro.CreatedById,
+                        LastModifiedById = pro.CreatedById
+                    };
+                    newAccess.LastModifiedById = newAccess.CreatedById;
+                    pro.ProjectsAccess.Add(newAccess);
                 }
             }
 
@@ -134,20 +143,32 @@ namespace Dxc.Shq.WebApi.Controllers
 
             if (project.Type == "FTAProject")
             {
-                db.FTAProjects.Add(new FTAProject() { Id = Guid.NewGuid(), ProjectId = projectView.Id });
+                db.FTAProjects.Add(new FTAProject() { Id = Guid.NewGuid(), ProjectId = projectView.Id, CreatedById = project.CreatedById, LastModifiedById = project.LastModifiedById });
             }
 
+            int i = 0;
             if (projectView.UsersPrivileges.Count > 0)
             {
+                i++;
                 foreach (var item in projectView.UsersPrivileges)
                 {
-                    await AddOrUpdateProjectAccess(new ProjectShqUsersViewModel() { ProjectId = project.Id, EmailAddress = item.EmailAddress, Privilege = item.Privilege });
+                    var newAccess = new ProjectShqUsers()
+                    {
+                        ProjectId = project.Id,
+                        ShqUserId = db.ShqUsers.Where(u => u.EmailAddress == item.EmailAddress).FirstOrDefault().IdentityUserId,
+                        Privilege = item.Privilege,
+                        CreatedById = project.CreatedById,
+                        LastModifiedById = project.CreatedById
+                    };
+                    newAccess.LastModifiedById = newAccess.CreatedById;
+                   db.ProjectShqUsers.Add(newAccess);
                 }
             }
 
             await db.SaveChangesAsync();
 
             ProjectViewModel result = new ProjectViewModel(project, db);
+            result.Description = i.ToString();
             result.Privilege = ShqConstants.AllowProjectUpdate;
 
             return Ok(result);
@@ -195,7 +216,8 @@ namespace Dxc.Shq.WebApi.Controllers
                     ProjectId = projectShqUsersViewModel.ProjectId,
                     ShqUserId = shqUser.IdentityUserId,
                     Privilege = projectShqUsersViewModel.Privilege,
-                    CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
+                    CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
+                    LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
                 };
                 newAccess.LastModifiedById = newAccess.CreatedById;
                 shqUser.ProjectsAccess.Add(newAccess);
@@ -257,7 +279,7 @@ namespace Dxc.Shq.WebApi.Controllers
         [ResponseType(typeof(ProjectViewModel))]
         public async Task<IHttpActionResult> DeleteProject(Guid id)
         {
-            Project project = await db.Projects.Include("CreatedBy").FirstOrDefaultAsync(item => item.Id == id);
+            Project project = await db.Projects.FirstOrDefaultAsync(item => item.Id == id);
             if (project == null)
             {
                 return NotFound();
