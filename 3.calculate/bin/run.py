@@ -187,11 +187,59 @@ def computeForCUTS(pid):
 	nodes = getNodeInfo(conn,pid)
 	root = getRootInfo(conn,pid)
 	cuts = getCUTS(root,nodes)
+	persisCUTSByID(cuts,pid)
+	persisCUTSByNAME(cuts,pid,nodes)
 	releaseDBConnection(conn)
 	print("the cuts is:"+str(cuts))
 	return cuts
 
 #########################################################
+
+def persisCUTSByID(cuts,pid):
+	sqlStr = "insert into T_CUT_BY_ID(BRANCH_ID,NODE_ID,PROJECT_ID)values( %s, %s, %s )"
+	conn = getDBConnection()
+	cur = conn.cursor()
+	cur.execute("delete from T_CUT_BY_ID where PROJECT_ID = %s",pid)
+	conn.commit();
+
+	for n in cuts:
+		branchID = cuts.index(n)
+		for m in n:
+			cur.execute(sqlStr,(branchID,m,pid))
+	conn.commit()
+	cur.close()
+	releaseDBConnection(conn)
+
+#########################################################
+
+def persisCUTSByNAME(cuts,pid,nodes):
+	names = list()
+	for n in cuts:
+		temp = list()
+		for m in n:
+			temp.append(nodes[m]["NODE_NAME"])
+		temp.sort()
+		names.append(temp)
+		del temp
+	names.sort()
+	names = list(set([tuple(r) for r in names]))
+	names = [list(r) for r in names]
+
+	sqlStr = "insert into T_CUT_BY_NAME(BRANCH_ID,NODE_NAME,PROJECT_ID)values( %s, %s, %s )"
+	conn = getDBConnection()
+	cur = conn.cursor()
+	cur.execute("delete from T_CUT_BY_NAME where PROJECT_ID = %s",pid)
+	conn.commit();
+	
+	for n in names:
+		branchID = names.index(n)
+		for m in n:
+			cur.execute(sqlStr,(branchID,m,pid))
+			
+	conn.commit()
+	cur.close()
+	releaseDBConnection(conn)
+	print("names:"+str(names))
 
 if __name__=="__main__":
 	print("kick off the program")
@@ -201,7 +249,7 @@ if __name__=="__main__":
 	for t in task.keys():
 		if t == "CUT":
 			cuts = computeForCUTS(task[t])
-			
+
 	print("the program is completed")
 
 	
