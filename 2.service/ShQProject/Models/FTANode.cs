@@ -1,5 +1,6 @@
 ﻿namespace Dxc.Shq.WebApi.Models
 {
+    using System;
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
 
@@ -18,10 +19,23 @@
         [Key]
         public string Id { get; set; }
 
+        public string Name { get; set; }
+
         public string ParentId { get; set; }
 
-        public string Type { get; set; }
+        [ForeignKey("FTANoteGate")]
+        public string GateId { get; set; }
+        public FTANoteGate FTANoteGate { get; set; }
 
+        [ForeignKey("FTANoteType")]
+        public string NoteTypeName { get; set; }
+        public FTANoteType FTANoteType { get; set; }
+
+        [ForeignKey("FTAProject")]
+        public Guid FTAProjectId { get; set; }
+        public FTAProject FTAProject { get; set; }
+
+        // graphic properties
         public string Size { get; set; }
 
         public string Color { get; set; }
@@ -33,6 +47,7 @@
 
         public int Index { get; set; }
 
+        // event properties
         public string EventId { get; set; }
 
         public double Q { get; set; }

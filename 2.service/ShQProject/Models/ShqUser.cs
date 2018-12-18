@@ -14,9 +14,11 @@
         public IdentityUser IdentityUser { get; set; }
 
         [Required]
-        public bool Enabled { get; set; }
+        public int Status { get; set; }
 
         public string RealName { get; set; }
+
+        public string Description { get; set; }
 
         [Required]
         public string EmailAddress { get; set; }

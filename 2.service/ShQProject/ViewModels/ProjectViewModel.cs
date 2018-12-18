@@ -8,6 +8,17 @@ using System.Web;
 
 namespace Dxc.Shq.WebApi.ViewModels
 {
+    public class UsersPrivileges
+    {
+        public string RealName { get; set; }
+
+        [Required]
+        public string EmailAddress { get; set; }
+
+        [Required]
+        public int Privilege { get; set; }
+    }
+
     public class ProjectRequestViewModel
     {
         [Required]
@@ -18,8 +29,12 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         public string Description { get; set; }
 
+        public string Tag { get; set; }
+
         [Required]
         public string Type { get; set; }
+
+        public List<UsersPrivileges> UsersPrivileges = new List<UsersPrivileges>();
 
         public ProjectRequestViewModel()
         {
@@ -32,9 +47,10 @@ namespace Dxc.Shq.WebApi.ViewModels
             p.Id = Id;
             p.Name = Name;
             p.Description = Description;
+            p.Tag = Tag;
             p.Type = Type;
-            //p.CreateBy = CreateBy.ToShqUser();
-            //p.CreateTime = DateTime.Parse(CreateTime);
+            //p.CreatedBy = CreatedBy.ToShqUser();
+            //p.CreatedTime = DateTime.Parse(CreatedTime);
 
             return p;
         }
@@ -44,9 +60,12 @@ namespace Dxc.Shq.WebApi.ViewModels
     {
         public int Privilege { get; set; }
 
-        public ShqUserViewModel CreateBy { get; set; }
+        public ShqUserRequestViewModel CreatedBy { get; set; }
 
-        public string CreateTime { get; set; }
+        public string CreatedTime { get; set; }
+
+        public ShqUserRequestViewModel LastModifiedBy { get; set; }
+        public string LastModfiedTime { get; set; }
 
         public ProjectViewModel():base()
         {
@@ -63,9 +82,19 @@ namespace Dxc.Shq.WebApi.ViewModels
             Name = project.Name;
             Description = project.Description;
             Type = project.Type;
+            Tag = project.Tag;
 
-            CreateBy = new ShqUserViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == project.CreateById).FirstOrDefault(), db);
-            CreateTime = project.CreateTime.ToString();
+            var ps = db.ProjectShqUsers.Include("ShqUser").Where(item => item.ProjectId == project.Id).ToList();
+            foreach(var item in ps)
+            {
+                this.UsersPrivileges.Add(new ViewModels.UsersPrivileges() { RealName = item.ShqUser.RealName, EmailAddress = item.ShqUser.EmailAddress, Privilege = item.Privilege });
+            }
+
+            CreatedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == project.CreatedById).FirstOrDefault(), db);
+            CreatedTime = project.CreatedTime.ToString();
+
+            LastModifiedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == project.LastModifiedById).FirstOrDefault(), db);
+            LastModfiedTime = project.LastModfiedTime.ToString();
         }
 
         public static List<ProjectViewModel> ToProjectViewModelList(List<Project> projects, ShqContext db)

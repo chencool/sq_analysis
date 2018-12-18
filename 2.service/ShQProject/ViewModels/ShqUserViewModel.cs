@@ -1,26 +1,30 @@
 ﻿using Dxc.Shq.WebApi.Core;
 using Dxc.Shq.WebApi.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
 
 namespace Dxc.Shq.WebApi.ViewModels
 {
-    public class ShqUserViewModel
+    public class ShqUserRequestViewModel
     {
-        public ShqUserViewModel()
+        public ShqUserRequestViewModel()
         {
         }
 
-        public ShqUserViewModel(ShqUser shqUser, ShqContext db)
+        public ShqUserRequestViewModel(ShqUser shqUser, ShqContext db)
         {
             if (shqUser == null)
             {
                 return;
             }
 
-            Enabled = shqUser.Enabled;
+            Status = shqUser.Status;
             //LoginName = shqUser.IdentityUser.UserName;
             RealName = shqUser.RealName;
+            Description = shqUser.Description;
             EmailAddress = shqUser.EmailAddress;
             PhoneNumber = shqUser.PhoneNumber;
             Address = shqUser.Address;
@@ -35,15 +39,32 @@ namespace Dxc.Shq.WebApi.ViewModels
         }
 
         [Required]
-        public bool Enabled { get; set; }
+        public int Status { get; set; }
+
+        public string Description { get; set; }
 
         //[Required]
         //public string LoginName { get; set; }
 
         public string RealName { get; set; }
 
+        private string emailAddress;
         [Required]
-        public string EmailAddress { get; set; }
+        public string EmailAddress
+        {
+            get
+            {
+                return emailAddress;
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(value) == false)
+                {
+                    emailAddress = value.Trim().ToLower();
+                }
+            }
+        }
+
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
 
@@ -62,8 +83,9 @@ namespace Dxc.Shq.WebApi.ViewModels
         {
             return new ShqUser
             {
-                Enabled = this.Enabled,
+                Status = this.Status,
                 RealName = this.RealName,
+                Description = this.Description,
                 EmailAddress = this.EmailAddress,
                 PhoneNumber = this.PhoneNumber,
                 Address = this.Address,
@@ -72,5 +94,26 @@ namespace Dxc.Shq.WebApi.ViewModels
                 Department = this.Department,
             };
         }
+    }
+    public class ShqUserRespondViewModel : ShqUserRequestViewModel
+    {
+        public ShqUserRespondViewModel() : base()
+        {
+        }
+
+        public ShqUserRespondViewModel(ShqUser shqUser, ShqContext db) : base(shqUser, db)
+        {
+            CreatedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == shqUser.CreatedById).FirstOrDefault(), db);
+            CreatedTime = shqUser.CreatedTime.ToString();
+
+            LastModifiedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == shqUser.LastModifiedById).FirstOrDefault(), db);
+            LastModfiedTime = shqUser.LastModfiedTime.ToString();
+        }
+
+        public ShqUserRequestViewModel CreatedBy { get; set; }
+        public string CreatedTime { get; set; }
+
+        public ShqUserRequestViewModel LastModifiedBy { get; set; }
+        public string LastModfiedTime { get; set; }
     }
 }

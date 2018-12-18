@@ -89,8 +89,27 @@ namespace Dxc.Shq.WebApi.Controllers
             db.Entry(pro).State = EntityState.Modified;
             pro.Name = project.Name;
             pro.Description = project.Description;
+            pro.Tag = project.Tag;
             pro.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
-            pro.LastModfiedDate = DateTime.Now;
+            pro.LastModfiedTime = DateTime.Now;
+
+            if (project.UsersPrivileges.Count > 0)
+            {
+                pro.ProjectsAccess.RemoveAll(item => item.ProjectId == pro.Id);
+                foreach (var item in project.UsersPrivileges)
+                {
+                    var newAccess = new ProjectShqUsers()
+                    {
+                        ProjectId = project.Id,
+                        ShqUserId = db.ShqUsers.Where(u => u.EmailAddress == item.EmailAddress).FirstOrDefault().IdentityUserId,
+                        Privilege = item.Privilege,
+                        CreatedById = pro.CreatedById,
+                        LastModifiedById = pro.CreatedById
+                    };
+                    newAccess.LastModifiedById = newAccess.CreatedById;
+                    pro.ProjectsAccess.Add(newAccess);
+                }
+            }
 
             await db.SaveChangesAsync();
 
@@ -117,19 +136,39 @@ namespace Dxc.Shq.WebApi.Controllers
 
             Project project = projectView.ToProject();
 
-            project.CreateById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
-            project.LastModifiedById = project.CreateById;
+            project.CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
+            project.LastModifiedById = project.CreatedById;
 
             db.Projects.Add(project);
 
             if (project.Type == "FTAProject")
             {
-                db.FTAProjects.Add(new FTAProject() { Id = Guid.NewGuid(), ProjectId = projectView.Id });
+                db.FTAProjects.Add(new FTAProject() { Id = Guid.NewGuid(), ProjectId = projectView.Id, CreatedById = project.CreatedById, LastModifiedById = project.LastModifiedById });
+            }
+
+            int i = 0;
+            if (projectView.UsersPrivileges.Count > 0)
+            {
+                i++;
+                foreach (var item in projectView.UsersPrivileges)
+                {
+                    var newAccess = new ProjectShqUsers()
+                    {
+                        ProjectId = project.Id,
+                        ShqUserId = db.ShqUsers.Where(u => u.EmailAddress == item.EmailAddress).FirstOrDefault().IdentityUserId,
+                        Privilege = item.Privilege,
+                        CreatedById = project.CreatedById,
+                        LastModifiedById = project.CreatedById
+                    };
+                    newAccess.LastModifiedById = newAccess.CreatedById;
+                   db.ProjectShqUsers.Add(newAccess);
+                }
             }
 
             await db.SaveChangesAsync();
 
             ProjectViewModel result = new ProjectViewModel(project, db);
+            result.Description = i.ToString();
             result.Privilege = ShqConstants.AllowProjectUpdate;
 
             return Ok(result);
@@ -149,8 +188,8 @@ namespace Dxc.Shq.WebApi.Controllers
                 return NotFound();
             }
 
-            var createBy = await db.ShqUsers.Include("IdentityUser").FirstOrDefaultAsync(item => item.IdentityUserId == project.CreateById);
-            if (HttpContext.Current.User.Identity.Name != createBy.IdentityUser.UserName
+            var CreatedBy = await db.ShqUsers.Include("IdentityUser").FirstOrDefaultAsync(item => item.IdentityUserId == project.CreatedById);
+            if (HttpContext.Current.User.Identity.Name != CreatedBy.IdentityUser.UserName
                && HttpContext.Current.User.IsInRole(ShqConstants.AdministratorRole) == false)
             {
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
@@ -167,7 +206,7 @@ namespace Dxc.Shq.WebApi.Controllers
             {
                 ps.Privilege = projectShqUsersViewModel.Privilege;
                 ps.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
-                ps.LastModfiedDate = DateTime.Now;
+                ps.LastModfiedTime = DateTime.Now;
             }
 
             else
@@ -177,9 +216,10 @@ namespace Dxc.Shq.WebApi.Controllers
                     ProjectId = projectShqUsersViewModel.ProjectId,
                     ShqUserId = shqUser.IdentityUserId,
                     Privilege = projectShqUsersViewModel.Privilege,
-                    CreateById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
+                    CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
+                    LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
                 };
-                newAccess.LastModifiedById = newAccess.CreateById;
+                newAccess.LastModifiedById = newAccess.CreatedById;
                 shqUser.ProjectsAccess.Add(newAccess);
             }
 
@@ -202,14 +242,14 @@ namespace Dxc.Shq.WebApi.Controllers
                 return NotFound();
             }
 
-            var createBy = await db.ShqUsers.Include("IdentityUser").FirstOrDefaultAsync(item => item.IdentityUserId == project.CreateById);
-            if (HttpContext.Current.User.Identity.Name != createBy.IdentityUser.UserName
+            var CreatedBy = await db.ShqUsers.Include("IdentityUser").FirstOrDefaultAsync(item => item.IdentityUserId == project.CreatedById);
+            if (HttpContext.Current.User.Identity.Name != CreatedBy.IdentityUser.UserName
                && HttpContext.Current.User.IsInRole(ShqConstants.AdministratorRole) == false)
             {
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
             }
 
-            ShqUser shqUser = await db.ShqUsers.Include("ProjectsAccess").Where(item => item.EmailAddress== projectShqUsersViewModel.EmailAddress).FirstOrDefaultAsync();
+            ShqUser shqUser = await db.ShqUsers.Include("ProjectsAccess").Where(item => item.EmailAddress == projectShqUsersViewModel.EmailAddress).FirstOrDefaultAsync();
             if (shqUser == null)
             {
                 return NotFound();
@@ -220,7 +260,7 @@ namespace Dxc.Shq.WebApi.Controllers
             {
                 shqUser.ProjectsAccess.Remove(ps);
                 project.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
-                project.LastModfiedDate = DateTime.Now;
+                project.LastModfiedTime = DateTime.Now;
             }
 
             else
@@ -239,7 +279,7 @@ namespace Dxc.Shq.WebApi.Controllers
         [ResponseType(typeof(ProjectViewModel))]
         public async Task<IHttpActionResult> DeleteProject(Guid id)
         {
-            Project project = await db.Projects.Include("CreateBy").FirstOrDefaultAsync(item => item.Id == id);
+            Project project = await db.Projects.FirstOrDefaultAsync(item => item.Id == id);
             if (project == null)
             {
                 return NotFound();
