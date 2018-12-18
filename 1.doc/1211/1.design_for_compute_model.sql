@@ -1,3 +1,12 @@
+drop table T_CUT;
+create table T_CUT
+(
+CUT_ID int not null auto_increment primary key,
+BRANCH_ID int not null,
+NODE_ID int not null,
+PROJECT_ID int not null
+)
+
 drop table  T_NODE;
 create table T_NODE
 (
