@@ -1,11 +1,21 @@
-drop table T_CUT;
-create table T_CUT
+drop table T_CUT_BY_ID;
+create table T_CUT_BY_ID
 (
 CUT_ID int not null auto_increment primary key,
 BRANCH_ID int not null,
 NODE_ID int not null,
 PROJECT_ID int not null
-)
+);
+
+
+drop table T_CUT_BY_NAME;
+create table T_CUT_BY_NAME
+(
+CUT_ID int not null auto_increment primary key,
+BRANCH_ID int not null,
+NODE_NAME varchar(50) not null,
+PROJECT_ID int not null
+);
 
 drop table  T_NODE;
 create table T_NODE
