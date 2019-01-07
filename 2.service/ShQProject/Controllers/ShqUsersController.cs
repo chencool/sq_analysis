@@ -42,7 +42,7 @@ namespace Dxc.Shq.WebApi.Controllers
         [ResponseType(typeof(ShqUserRespondViewModel))]
         public async Task<IHttpActionResult> GetShqUserByStatus(int status)
         {
-            ShqUser shqUser = await db.ShqUsers.Where(item => item.Status == status).Include("IdentityUser").FirstOrDefaultAsync();
+            ShqUser shqUser = await db.ShqUsers.Where(item => item.Status == status).FirstOrDefaultAsync();
             if (shqUser == null)
             {
                 return NotFound();
@@ -57,7 +57,7 @@ namespace Dxc.Shq.WebApi.Controllers
         [ResponseType(typeof(ShqUserRespondViewModel))]
         public async Task<IHttpActionResult> GetShqUserByEmail(string email)
         {
-            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.Email == email).Include("IdentityUser").FirstOrDefaultAsync();
+            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.Email == email).FirstOrDefaultAsync();
             if (shqUser == null)
             {
                 return NotFound();
@@ -142,7 +142,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
             }
 
-            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.UserName == shqUserView.EmailAddress).Include("IdentityUser").FirstOrDefaultAsync();
+            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.UserName == shqUserView.EmailAddress).FirstOrDefaultAsync();
             if (shqUser == null)
             {
                 return NotFound();
@@ -186,7 +186,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
             }
 
-            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.UserName == password.EmailAddress).Include("IdentityUser").FirstOrDefaultAsync();
+            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.UserName == password.EmailAddress).FirstOrDefaultAsync();
             if (shqUser == null)
             {
                 return NotFound();
