@@ -92,6 +92,13 @@ namespace Dxc.Shq.WebApi.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("api/FTAProjects/test")]
+        public JsonFTATree TestFormat(JsonFTATree tree)
+        {
+            return tree;
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)

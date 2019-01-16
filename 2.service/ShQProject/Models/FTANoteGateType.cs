@@ -9,8 +9,7 @@ namespace Dxc.Shq.WebApi.Models
     public class FTANoteGateType
     {
         [Key]
-        public string Name { get; set; }
-
+        public int Id { get; set; }
         public string Description { get; set; }
     }
 }

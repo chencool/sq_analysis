@@ -90,6 +90,7 @@
     <Compile Include="Controllers\ProjectsController.cs" />
     <Compile Include="Controllers\ShqUsersController.cs" />
     <Compile Include="Core\Constants.cs" />
+    <Compile Include="Core\JsonFTATree.cs" />
     <Compile Include="Core\ProjectHelper.cs" />
     <Compile Include="Core\ShqContext.cs" />
     <Compile Include="Core\ShqUserManager.cs" />
@@ -101,6 +102,9 @@
     </Compile>
     <Compile Include="Identity\CustomJwtFormat.cs" />
     <Compile Include="Identity\CustomOAuthProvider.cs" />
+    <Compile Include="Models\FTAAnalysisResultById.cs" />
+    <Compile Include="Models\FTAAnalysisResultByName.cs" />
+    <Compile Include="Models\FTANodeProperties.cs" />
     <Compile Include="Models\FTANoteGate.cs" />
     <Compile Include="Models\FTANoteGateType.cs" />
     <Compile Include="Models\FTANoteType.cs" />

@@ -9,7 +9,7 @@ namespace Dxc.Shq.WebApi.Models
     public class FTANoteType
     {
         [Key]
-        public string Name { get; set; }
+        public int Id { get; set; }
         public string Description { get; set; }
     }
 }
