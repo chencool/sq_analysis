@@ -1,6 +1,7 @@
 #coding:utf-8
-#!C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Python 3.5
+#!C:\Users\shopAdmin\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Python 3.6
 #usage: run.py --C=<project ID>
+
 
 import sys
 import getopt
@@ -16,8 +17,8 @@ def init():
 	global HOST,USER,PASSWD,DB
 	HOST = "127.0.0.1"
 	USER = "root"
-	PASSWD = "postman"
-	DB = "saic"
+	PASSWD = "root"
+	DB = "shqdb"
 
 #########################################################
 
@@ -28,6 +29,7 @@ def showUsage():
 
 def getArgv(argv):
 	res = {}
+	showUsage() if len(argv) == 0 else None
 	try:
 		opts,args = getopt.getopt(argv,"h",["help","C="])
 	except getopt.GetoptError:
@@ -58,16 +60,16 @@ def releaseDBConnection(conn):
 
 def getNodeInfo(conn,pid):
 	res = dict()
-	sqlStr = "select a.NODE_ID,a.NODE_NAME,c.NODE_TYPE_DESC,a.PARENT_ID,b.GATE_ID,b.GATE_NAME,d.GATE_TYPE_DESC \
-              from t_node a \
-              LEFT join t_gate b \
-              on a.GATE_ID = b.GATE_ID \
-              and b.PROJECT_ID = a.PROJECT_ID \
-              LEFT JOIN t_node_type_dic c \
-              on a.NODE_TYPE = c.NODE_TYPE \
-              LEFT JOIN t_gate_type_dic d \
-              on b.GATE_TYPE = d.GATE_TYPE \
-              where a.PROJECT_ID = %s order by a.NODE_TYPE"
+	sqlStr = "select a.Id as NODE_ID,a.Name as NODE_NAME,c.Description as NODE_TYPE_DESC,a.ParentId as PARENT_ID,b.Id as GATE_ID,b.Name as GATE_NAME,d.Description as GATE_TYPE_DESC \
+              from FTANodes a \
+              LEFT join FTANoteGates b \
+              on a.FTANoteGateId = b.Id \
+              and b.FTAProjectId = a.FTAProjectId \
+              LEFT JOIN FTANoteTypes c \
+              on a.FTANoteTypeId = c.Id \
+              LEFT JOIN FTANoteGateTypes d \
+              on b.FTANoteGateTypeId = d.Id \
+              where a.FTAProjectId = %s order by a.FTANoteTypeId"
 	cur = conn.cursor()
 	cur.execute(sqlStr,pid)
 	results = cur.fetchall()
@@ -80,7 +82,8 @@ def getNodeInfo(conn,pid):
 
 def getRootInfo(conn,pid):
 	res = ""
-	sqlStr = "select NODE_ID from t_node where PROJECT_ID = %s and NODE_TYPE = 1"
+	#sqlStr = "select NODE_ID from t_node where PROJECT_ID = %s and NODE_TYPE = 1"
+	sqlStr = "select Id as NODE_ID from FTANodes where FTAProjectId = %s and FTANoteTypeId = 1"
 	cur = conn.cursor()
 	cur.execute(sqlStr,pid)
 	res = cur.fetchone()[0]
@@ -121,7 +124,10 @@ def getBranchs(cuts,nodes):
 		for m in n:
 			if nodes[m]["NODE_TYPE_DESC"] in ("BRANCH"):
 				branchs.append(m)
-	return branchs
+	if len(branchs):
+		return branchs
+	else:
+		return False
 
 #########################################################
 
@@ -144,17 +150,19 @@ def getChildGates(branch,nodes):
 #########################################################
 
 def checkLeafs(cuts,nodes):
-	branchs = list()
+	
 	branchs = getBranchs(cuts,nodes)
-	for r in branchs:
-		childGates = getChildGates(r,nodes)
-		n = 0
-		remove = False
-		for k in childGates.keys():
-			n = n + 1
-			if n == len(childGates):
-				remove = True 
-			getCUTSCombine(cuts,{"GATE_TYPE_DESC":k[1],"CUTS":childGates[k]["CUTS"]},r,remove)
+	while(branchs):
+		for r in branchs:
+			childGates = getChildGates(r,nodes)
+			n = 0
+			remove = False
+			for k in childGates.keys():
+				n = n + 1
+				if n == len(childGates):
+					remove = True 
+				getCUTSCombine(cuts,{"GATE_TYPE_DESC":k[1],"CUTS":childGates[k]["CUTS"]},r,remove)
+				branchs = getBranchs(cuts,nodes)
 	return False
 
 #########################################################
@@ -196,10 +204,10 @@ def computeForCUTS(pid):
 #########################################################
 
 def persisCUTSByID(cuts,pid):
-	sqlStr = "insert into T_CUT_BY_ID(BRANCH_ID,NODE_ID,PROJECT_ID)values( %s, %s, %s )"
+	sqlStr = "insert into FTAAnalysisResultByIds(BranchId,FTANodeId,FTAProjectId)values( %s, %s, %s )"
 	conn = getDBConnection()
 	cur = conn.cursor()
-	cur.execute("delete from T_CUT_BY_ID where PROJECT_ID = %s",pid)
+	cur.execute("delete from FTAAnalysisResultByIds where FTAProjectId = %s",pid)
 	conn.commit();
 
 	for n in cuts:
@@ -225,17 +233,17 @@ def persisCUTSByNAME(cuts,pid,nodes):
 	names = list(set([tuple(r) for r in names]))
 	names = [list(r) for r in names]
 
-	sqlStr = "insert into T_CUT_BY_NAME(BRANCH_ID,NODE_NAME,PROJECT_ID)values( %s, %s, %s )"
+	sqlStr = "insert into FTAAnalysisResultBynames(BranchId,FTANodeName,FTAProjectId)values( %s, %s, %s )"
 	conn = getDBConnection()
 	cur = conn.cursor()
-	cur.execute("delete from T_CUT_BY_NAME where PROJECT_ID = %s",pid)
+	cur.execute("delete from FTAAnalysisResultBynames where FTAProjectId = %s",pid)
 	conn.commit();
 	
 	for n in names:
 		branchID = names.index(n)
 		for m in n:
 			cur.execute(sqlStr,(branchID,m,pid))
-			
+
 	conn.commit()
 	cur.close()
 	releaseDBConnection(conn)
