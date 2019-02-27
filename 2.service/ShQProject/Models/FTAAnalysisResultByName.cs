@@ -15,5 +15,7 @@ namespace Dxc.Shq.WebApi.Models
 
         [ForeignKey("FTAProject")]
         public Guid FTAProjectId { get; set; }
+
+        public FTAProject FTAProject { get; set; }
     }
 }

@@ -19,5 +19,12 @@
         public DbSet<ShqUser> ShqUsers { get; set; }
 
         public DbSet<ProjectShqUsers> ProjectShqUsers { get; set; }
+
+        public DbSet<FTAAnalysisResultById> FTAAnalysisResultByIds { get; set; }
+        public DbSet<FTAAnalysisResultByName> FTAAnalysisResultByNames { get; set; }
+
+        public DbSet<FTANoteType> FTANoteTypes { get; set; }
+
+        public DbSet<FTANoteGateType> FTANoteGateTypes { get; set; }
     }
 }

@@ -10,6 +10,9 @@ namespace Dxc.Shq.WebApi.Core
 {
     public class JsonFTATree
     {
+        [Required]
+        public Guid ProjectId { get; set; }
+
         [JsonProperty(PropertyName = "attributes")]
         public List<JsonFTAProperties> FTAProperties = new List<JsonFTAProperties>();
 

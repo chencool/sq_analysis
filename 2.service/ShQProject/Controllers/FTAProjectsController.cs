@@ -94,9 +94,104 @@ namespace Dxc.Shq.WebApi.Controllers
 
         [HttpPost]
         [Route("api/FTAProjects/test")]
-        public JsonFTATree TestFormat(JsonFTATree tree)
+        [ResponseType(typeof(JsonFTATree))]
+        public async Task<IHttpActionResult> TestFormat(JsonFTATree tree)
         {
-            return tree;
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var docs = db.FTAProjects.Include("Project").Where(item => item.ProjectId == tree.ProjectId).FirstOrDefault();
+            if (docs == null)
+            {
+                return NotFound();
+            }
+
+            if (ProjectHelper.HasUpdateAccess(docs.Project) == false)
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
+            }
+
+            docs.FTANodeProperties.Clear();
+            docs.FTANodes.Clear();
+            docs.FTANoteGates.Clear();
+
+            int i = 1;
+            int gateId = 1;
+            while (tree.FTANodes != null  && i <= tree.FTANodes.Count)
+            {
+                var node = tree.FTANodes[i-1];
+                i++;
+                if ("square,rectangle,round".Contains(node.ItemType.ToLower()))
+                {// 获取节点
+                    FTANode fn = new FTANode();
+                    fn.Id = i;
+                    fn.FTAProjectId = docs.Id;
+                    fn.FTAProject = docs;
+                    fn.Index = node.Mode.Index;
+                    fn.EventId = node.Id;
+                    fn.Name = node.Name;
+                    fn.Shape = node.Mode.Shape;
+                    fn.Size = node.Mode.Size;
+                    fn.X = node.Mode.X;
+                    fn.Y = node.Mode.Y;
+
+                    docs.FTANodes.Add(fn);
+
+                    // 获取属性
+                    var property = tree.FTAProperties.FirstOrDefault(item => item.Name == node.Name);
+                    if (property != null)
+                    {
+                        FTANodeProperties fp = new FTANodeProperties();
+                        fp.Id = Guid.NewGuid();
+                        fp.FTAProjectId = docs.Id;
+                        fp.FTAProject = docs;
+                        fp.DClf = property.DClf;
+                        fp.DCrf = property.DCrf;
+                        fp.FailureRateQ = property.FailureRateQ;
+                        fp.FailureTime = property.FailureTime;
+                        fp.InvalidRate = property.InvalidRate;
+                        fp.ReferenceFailureRateq = property.ReferenceFailureRateq;
+
+                        fn.FTANodePropertiesId = fp.Id;
+                        fn.FTANodeProperties = fp;
+
+                        docs.FTANodeProperties.Add(fp);
+                    }
+
+                    // 获取 门 或父亲节点
+                    var edge = tree.FTAEdges.FirstOrDefault(item => item.Target == node.Id);
+                    if (edge != null)
+                    {
+                        var parentNode = tree.FTANodes.FirstOrDefault(item => item.Id == edge.Source);
+                        if ("orgate,andgate,nongate".Contains(parentNode.ItemType.ToLower()))
+                        {
+                            FTANoteGate gate = new FTANoteGate(); //to do
+                            gate.Id = gateId;
+                            gate.Name = parentNode.ItemType;
+                            gate.FTAProjectId = docs.Id;
+                            gate.FTAProject = docs;
+                            gate.FTANoteGateType = db.FTANoteGateTypes.FirstOrDefault(item => item.Description.Contains(parentNode.ItemType));
+                            gate.FTANoteGateTypeId = gate.FTANoteGateType.Id;
+                            gateId++;
+                            fn.FTANoteGateId = gate.Id;
+
+                            var parentEdge = tree.FTAEdges.FirstOrDefault(item => item.Target == edge.Source);
+                            var grandParentNode = tree.FTANodes.FirstOrDefault(item => item.Id == parentEdge.Source);
+
+                            fn.ParentId = tree.FTANodes.IndexOf(grandParentNode) + 1;
+
+                            docs.FTANoteGates.Add(gate);
+                        }
+                    }
+
+                }
+            }
+
+            await db.SaveChangesAsync();
+
+            return Ok(tree);
         }
 
         protected override void Dispose(bool disposing)

@@ -1,10 +1,18 @@
-﻿using System;
+﻿using Dxc.Shq.WebApi.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
 namespace Dxc.Shq.WebApi.Core
 {
+    public class FTANodeGateTypeConstant
+    {
+        public FTANoteGateType FTANoteGateType { get; set; }
+
+        public string Key;
+    }
+
     public class ShqConstants
     {
         public const string AdministratorRole = "Administrator";
