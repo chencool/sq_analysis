@@ -9,6 +9,8 @@ namespace Dxc.Shq.WebApi.Models
 {
     public class FTANoteGate
     {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
+        [Column(Order = 0)]
         public int Id { get; set; }
         public string Name { get; set; }
 
@@ -16,7 +18,8 @@ namespace Dxc.Shq.WebApi.Models
         public int FTANoteGateTypeId { get; set; }
         public FTANoteGateType FTANoteGateType { get; set; }
 
-        [ForeignKey("FTAProject")]
+        [Key, ForeignKey("FTAProject")]
+        [Column(Order = 1)]
         public Guid FTAProjectId { get; set; }
 
         public FTAProject FTAProject { get; set; }

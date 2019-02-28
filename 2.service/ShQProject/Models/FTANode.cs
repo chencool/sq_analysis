@@ -16,6 +16,8 @@
 
     public class FTANode
     {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
+        [Column(Order = 0)]
         public int Id { get; set; }
 
         public string Name { get; set; }
@@ -30,7 +32,9 @@
         public int FTANoteTypeId { get; set; }
         public FTANoteType FTANoteType { get; set; }
 
-        [ForeignKey("FTAProject")]
+
+        [Key, ForeignKey("FTAProject")]
+        [Column(Order = 1)]
         public Guid FTAProjectId { get; set; }
         public FTAProject FTAProject { get; set; }
 

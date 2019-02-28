@@ -6,13 +6,6 @@ using System.Web;
 
 namespace Dxc.Shq.WebApi.Core
 {
-    public class FTANodeGateTypeConstant
-    {
-        public FTANoteGateType FTANoteGateType { get; set; }
-
-        public string Key;
-    }
-
     public class ShqConstants
     {
         public const string AdministratorRole = "Administrator";
@@ -25,5 +18,13 @@ namespace Dxc.Shq.WebApi.Core
         public const int UserStatusException = 0;
         public const int UserStatusAvailable = 1;
         public const int UserStatusDisable = 2;
+
+        public const int FTANoteTypeRoot= 1;
+        public const int FTANoteTypeBrand= 2;
+        public const int FTANoteTypeLeaf= 3;
+
+        public const int FTANoteGateTypeAnd = 1;
+        public const int FTANoteGateTypeOr = 2;
+        public const int FTANoteGateTypeXor = 3;
     }
 }

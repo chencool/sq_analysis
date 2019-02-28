@@ -40,6 +40,20 @@ namespace Dxc.Shq.WebApi.Core
                 userRoleId = context.Roles.First(c => c.Name == "User").Id;
             }
 
+            if(!context.FTANoteTypes.Any())
+            {
+                context.FTANoteTypes.Add(new FTANoteType() { Id = 1, Description = "ROOT" });
+                context.FTANoteTypes.Add(new FTANoteType() { Id = 2, Description = "BRANCH" });
+                context.FTANoteTypes.Add(new FTANoteType() { Id = 3, Description = "LEAF" });
+            }
+
+            if (!context.FTANoteGateTypes.Any())
+            {
+                context.FTANoteGateTypes.Add(new FTANoteGateType() { Id = 1, Description = "AND" });
+                context.FTANoteGateTypes.Add(new FTANoteGateType() { Id = 2, Description = "OR" });
+                context.FTANoteGateTypes.Add(new FTANoteGateType() { Id = 3, Description = "XOR" });
+            }
+
             context.SaveChanges();
 
             if (!context.Users.Any())
@@ -65,7 +79,7 @@ namespace Dxc.Shq.WebApi.Core
             var user = context.Users.Add(new IdentityUser(userName) { Email = email, EmailConfirmed = true });
             user.Roles.Add(new IdentityUserRole { RoleId = role });
 
-            var shqUser = new ShqUser() { IdentityUserId = user.Id, IdentityUser = user, CreatedTime = DateTime.Now, Status = ShqConstants.UserStatusAvailable, EmailAddress = email };
+            var shqUser = new ShqUser() { IdentityUserId = user.Id, IdentityUser = user,RealName= userName, CreatedTime = DateTime.Now, Status = ShqConstants.UserStatusAvailable, EmailAddress = email };
             shqUser.CreatedById = CreatedBy == null ? shqUser.IdentityUserId : CreatedBy.IdentityUserId;
             context.ShqUsers.Add(shqUser);
 

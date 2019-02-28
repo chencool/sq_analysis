@@ -113,20 +113,26 @@ namespace Dxc.Shq.WebApi.Controllers
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
             }
 
-            docs.FTANodeProperties.Clear();
-            docs.FTANodes.Clear();
-            docs.FTANoteGates.Clear();
+            db.FTANodes.RemoveRange(docs.FTANodes);
+            db.FTANodeProperties.RemoveRange(docs.FTANodeProperties);
+            db.FTANoteGates.RemoveRange(docs.FTANoteGates);
+
+            db.SaveChanges();
 
             int i = 1;
+            int nodeId = 1;
             int gateId = 1;
-            while (tree.FTANodes != null  && i <= tree.FTANodes.Count)
+            try
             {
-                var node = tree.FTANodes[i-1];
-                i++;
-                if ("square,rectangle,round".Contains(node.ItemType.ToLower()))
-                {// 获取节点
+                List<JsonFTANode> FTANodesList = tree.FTANodes.FindAll(item => "square,rectangle,round".Contains(item.ItemType) == true);
+                while (i <= FTANodesList.Count)
+                {
+                    var node = FTANodesList[i - 1];
+                    i++;
+
                     FTANode fn = new FTANode();
-                    fn.Id = i;
+                    fn.Id = nodeId;
+                    nodeId++;
                     fn.FTAProjectId = docs.Id;
                     fn.FTAProject = docs;
                     fn.Index = node.Mode.Index;
@@ -136,6 +142,22 @@ namespace Dxc.Shq.WebApi.Controllers
                     fn.Size = node.Mode.Size;
                     fn.X = node.Mode.X;
                     fn.Y = node.Mode.Y;
+                    fn.ParentId = -1;
+                    fn.FTANoteGateId = -1;
+
+                    switch (node.ItemType.ToLower())
+                    {
+                        case "square":
+                            fn.FTANoteType = db.FTANoteTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANoteTypeRoot);
+                            break;
+                        case "rectangle":
+                            fn.FTANoteType = db.FTANoteTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANoteTypeBrand);
+                            break;
+                        case "round":
+                            fn.FTANoteType = db.FTANoteTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANoteTypeLeaf);
+                            break;
+                    }
+                    fn.FTANoteTypeId = fn.FTANoteType.Id;
 
                     docs.FTANodes.Add(fn);
 
@@ -169,24 +191,38 @@ namespace Dxc.Shq.WebApi.Controllers
                         {
                             FTANoteGate gate = new FTANoteGate(); //to do
                             gate.Id = gateId;
-                            gate.Name = parentNode.ItemType;
+                            gate.Name = parentNode.Name;
                             gate.FTAProjectId = docs.Id;
                             gate.FTAProject = docs;
-                            gate.FTANoteGateType = db.FTANoteGateTypes.FirstOrDefault(item => item.Description.Contains(parentNode.ItemType));
+                            switch (parentNode.ItemType.ToLower())
+                            {
+                                case "orgate":
+                                    gate.FTANoteGateType = db.FTANoteGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANoteGateTypeOr);
+                                    break;
+                                case "andgate":
+                                    gate.FTANoteGateType = db.FTANoteGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANoteGateTypeAnd);
+                                    break;
+                                case "nongate":
+                                    gate.FTANoteGateType = db.FTANoteGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANoteGateTypeXor);
+                                    break;
+                            }
                             gate.FTANoteGateTypeId = gate.FTANoteGateType.Id;
                             gateId++;
                             fn.FTANoteGateId = gate.Id;
 
                             var parentEdge = tree.FTAEdges.FirstOrDefault(item => item.Target == edge.Source);
-                            var grandParentNode = tree.FTANodes.FirstOrDefault(item => item.Id == parentEdge.Source);
+                            var grandParentNode = FTANodesList.FirstOrDefault(item => item.Id == parentEdge.Source);
 
-                            fn.ParentId = tree.FTANodes.IndexOf(grandParentNode) + 1;
+                            fn.ParentId = FTANodesList.IndexOf(grandParentNode) + 1;
 
                             docs.FTANoteGates.Add(gate);
                         }
                     }
-
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, ex.Message + ex.StackTrace));
             }
 
             await db.SaveChangesAsync();

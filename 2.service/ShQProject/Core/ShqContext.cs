@@ -23,8 +23,14 @@
         public DbSet<FTAAnalysisResultById> FTAAnalysisResultByIds { get; set; }
         public DbSet<FTAAnalysisResultByName> FTAAnalysisResultByNames { get; set; }
 
+        public DbSet<FTANode> FTANodes { get; set; }
+
         public DbSet<FTANoteType> FTANoteTypes { get; set; }
 
         public DbSet<FTANoteGateType> FTANoteGateTypes { get; set; }
+
+        public DbSet<FTANodeProperties> FTANodeProperties { get; set; }
+
+        public DbSet<FTANoteGate> FTANoteGates { get; set; }
     }
 }
