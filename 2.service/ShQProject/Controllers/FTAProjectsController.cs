@@ -84,6 +84,11 @@ namespace Dxc.Shq.WebApi.Controllers
                 docs.FTATrees.Add(ftaTree);
                 await db.SaveChangesAsync();
 
+                if (tree.Analysis == true)
+                {
+                    Analyze(docs, JsonConvert.DeserializeObject<JsonFTATree>(tree.Content));
+                }
+
                 return Ok(new FTATreeViewModel(ftaTree, db));
             }
             else
@@ -92,27 +97,8 @@ namespace Dxc.Shq.WebApi.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("api/FTAProjects/test")]
-        [ResponseType(typeof(JsonFTATree))]
-        public async Task<IHttpActionResult> TestFormat(JsonFTATree tree)
+        private JsonFTATree Analyze(FTAProject docs, JsonFTATree tree)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var docs = db.FTAProjects.Include("Project").Where(item => item.ProjectId == tree.ProjectId).FirstOrDefault();
-            if (docs == null)
-            {
-                return NotFound();
-            }
-
-            if (ProjectHelper.HasUpdateAccess(docs.Project) == false)
-            {
-                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
-            }
-
             db.FTANodes.RemoveRange(docs.FTANodes);
             db.FTANodeProperties.RemoveRange(docs.FTANodeProperties);
             db.FTANoteGates.RemoveRange(docs.FTANoteGates);
@@ -224,6 +210,36 @@ namespace Dxc.Shq.WebApi.Controllers
             {
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, ex.Message + ex.StackTrace));
             }
+
+            db.SaveChanges();
+
+            return tree;
+        }
+
+        [HttpPost]
+        [Route("api/FTAProjects/test")]
+        [ResponseType(typeof(JsonFTATree))]
+        public async Task<IHttpActionResult> TestFormat(JsonFTATree tree)
+        {
+
+            string content = JsonConvert.SerializeObject(tree);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var docs = db.FTAProjects.Include("Project").Where(item => item.ProjectId == tree.ProjectId).FirstOrDefault();
+            if (docs == null)
+            {
+                return NotFound();
+            }
+
+            if (ProjectHelper.HasUpdateAccess(docs.Project) == false)
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
+            }
+
+            Analyze(docs, tree);
 
             await db.SaveChangesAsync();
 
