@@ -46,5 +46,8 @@ namespace Dxc.Shq.WebApi.ViewModels
             CreatedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == tree.CreatedById).FirstOrDefault(), db);
             CreatedTime = tree.CreatedTime.ToString();
         }
+
+        public string AnalysisStatus { get; set; }
+        public List<string> AnalysisNodeIds { get; set; }
     }
 }

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -87,6 +90,26 @@ namespace Dxc.Shq.WebApi.Controllers
                 if (tree.Analysis == true)
                 {
                     Analyze(docs, JsonConvert.DeserializeObject<JsonFTATree>(tree.Content));
+                    var result = new FTATreeViewModel(ftaTree, db);
+
+                    string exeString = RunPythonAnalysis(docs.Id);
+                    if (exeString == null)
+                    {
+                        JsonFTATree resultTree = new JsonFTATree();
+                        var resultNodes = db.FTAAnalysisResultByIds.Where(r => r.FTAProjectId == docs.Id).Select(item => item.FTANodeId);
+                        var nds = db.FTANodes.Where(item => resultNodes.Contains(item.Id) == true).Select(r => r.EventId).ToList();
+                        result.AnalysisStatus = "Ok";
+                        result.AnalysisNodeIds = nds;
+
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        result.AnalysisStatus = "Error:" + exeString;
+                        result.AnalysisNodeIds = new List<string>();
+
+                        return Ok(result);
+                    }
                 }
 
                 return Ok(new FTATreeViewModel(ftaTree, db));
@@ -214,6 +237,30 @@ namespace Dxc.Shq.WebApi.Controllers
             db.SaveChanges();
 
             return tree;
+        }
+
+        private string RunPythonAnalysis(Guid ftaProjectId)
+        {
+            ProcessStartInfo start = new ProcessStartInfo();
+            start.FileName = ConfigurationManager.AppSettings["PythonExe"];
+            start.Arguments = string.Format("\"{0}\" --C={1}", ConfigurationManager.AppSettings["PythonScripts"], ftaProjectId.ToString());
+            start.UseShellExecute = false;
+            start.RedirectStandardOutput = true;
+            using (Process process = Process.Start(start))
+            {
+                using (StreamReader reader = process.StandardOutput)
+                {
+                    string result = reader.ReadToEnd();
+                    if (result.Contains("the program is completed"))
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        return result;
+                    }
+                }
+            }
         }
 
         [HttpPost]

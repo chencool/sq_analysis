@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Dxc.Shq.WebApi.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -97,6 +98,7 @@ namespace Dxc.Shq.WebApi.Core
         [Required]
         public Mode Mode { get; set; }
     }
+
 
     public class JsonFTAEdge
     {
