@@ -91,6 +91,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 {
                     Analyze(docs, JsonConvert.DeserializeObject<JsonFTATree>(tree.Content));
                     var result = new FTATreeViewModel(ftaTree, db);
+                    result.Analysis = true;
 
                     string exeString = RunPythonAnalysis(docs.Id);
                     if (exeString == null)
