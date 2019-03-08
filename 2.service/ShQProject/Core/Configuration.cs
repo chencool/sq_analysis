@@ -54,6 +54,22 @@ namespace Dxc.Shq.WebApi.Core
                 context.FTANoteGateTypes.Add(new FTANoteGateType() { Id = 3, Description = "XOR" });
             }
 
+            if (!context.FTAEventTypes.Any())
+            {
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 1, Name = "单点事件" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 2, Name = "双点事件" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 3, Name = "安全事件" });
+            }
+
+            if (!context.FTAFailureTypes.Any())
+            {
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 1, Name = "单点故障" });
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 2, Name = "残余故障" });
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 3, Name = "潜伏故障" });
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 4, Name = "可探测双点故障" });
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 5, Name = "安全故障" });
+            }
+
             context.SaveChanges();
 
             if (!context.Users.Any())

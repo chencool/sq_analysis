@@ -32,5 +32,13 @@
         public DbSet<FTANodeProperties> FTANodeProperties { get; set; }
 
         public DbSet<FTANoteGate> FTANoteGates { get; set; }
+
+        public DbSet<FTAEventType> FTAEventTypes { get; set; }
+
+        public DbSet<FTAFailureType> FTAFailureTypes { get; set; }
+
+        public DbSet<FTANodeEventReport> FTANodeEventReports { get; set; }
+
+        public DbSet<FTAEventReport> FTAEventReports { get; set; }
     }
 }

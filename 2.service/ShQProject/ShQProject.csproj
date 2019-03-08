@@ -104,9 +104,13 @@
     <Compile Include="Identity\CustomOAuthProvider.cs" />
     <Compile Include="Models\FTAAnalysisResultById.cs" />
     <Compile Include="Models\FTAAnalysisResultByName.cs" />
+    <Compile Include="Models\FTANodeEventReport.cs" />
+    <Compile Include="Models\FTAEventReport.cs" />
+    <Compile Include="Models\FTAFailureType.cs" />
     <Compile Include="Models\FTANodeProperties.cs" />
     <Compile Include="Models\FTANoteGate.cs" />
     <Compile Include="Models\FTANoteGateType.cs" />
+    <Compile Include="Models\FTAEventType.cs" />
     <Compile Include="Models\FTANoteType.cs" />
     <Compile Include="Models\FTAProject.cs" />
     <Compile Include="Models\DataBase.cs" />
