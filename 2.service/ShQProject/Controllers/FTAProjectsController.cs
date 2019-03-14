@@ -87,33 +87,63 @@ namespace Dxc.Shq.WebApi.Controllers
                 docs.FTATrees.Add(ftaTree);
                 await db.SaveChangesAsync();
 
-                if (tree.Analysis == true)
+                return Ok(new FTATreeViewModel(ftaTree, db));
+            }
+            else
+            {
+                return Conflict();
+            }
+        }
+
+        [HttpPost]
+        [Route("api/FTAProjects/AnalyzeTree")]
+        // POST: api/FTAProjects
+        [ResponseType(typeof(FTATreeViewModel))]
+        public async Task<IHttpActionResult> AnalyzeFTAProjectTree(FTATreeRequestViewModel tree)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var docs = db.FTAProjects.Include("Project").Where(item => item.ProjectId == tree.ProjectId).FirstOrDefault();
+            if (docs == null)
+            {
+                return NotFound();
+            }
+
+            if (ProjectHelper.HasUpdateAccess(docs.Project) == false)
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
+            }
+
+            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).Include("IdentityUser").FirstOrDefaultAsync();
+            var tr = docs.FTATrees.Where(item => item.Id == tree.Id).FirstOrDefault();
+            if (tr == null)
+            {
+                FTATree ftaTree = new FTATree() { Id = tree.Id, FTAProjectId = docs.Id, FTAProject = docs, Content = tree.Content, CreatedById = shqUser.IdentityUserId, CreatedTime = DateTime.Now, LastModifiedById = shqUser.IdentityUserId, LastModfiedTime = DateTime.Now };
+                docs.FTATrees.Add(ftaTree);
+                await db.SaveChangesAsync();
+
+                Analyze(docs, JsonConvert.DeserializeObject<JsonFTATree>(tree.Content));
+                var result = new FTATreeViewModel(ftaTree, db);
+
+                string exeString = RunPythonAnalysis(docs.Id);
+                if (exeString == null)
                 {
-                    Analyze(docs, JsonConvert.DeserializeObject<JsonFTATree>(tree.Content));
-                    var result = new FTATreeViewModel(ftaTree, db);
-                    result.Analysis = true;
-
-                    string exeString = RunPythonAnalysis(docs.Id);
-                    if (exeString == null)
-                    {
-                        JsonFTATree resultTree = new JsonFTATree();
-                        var resultNodes = db.FTAAnalysisResultByIds.Where(r => r.FTAProjectId == docs.Id).Select(item => item.FTANodeId);
-                        var nds = db.FTANodes.Where(item => resultNodes.Contains(item.Id) == true).Select(r => r.EventId).ToList();
-                        result.AnalysisStatus = "Ok";
-                        result.AnalysisNodeIds = nds;
-
-                        return Ok(result);
-                    }
-                    else
-                    {
-                        result.AnalysisStatus = "Error:" + exeString;
-                        result.AnalysisNodeIds = new List<string>();
-
-                        return Ok(result);
-                    }
+                    JsonFTATree resultTree = new JsonFTATree();
+                    var resultNodes = db.FTAAnalysisResultByNames.Where(r => r.FTAProjectId == docs.Id).Select(item => item.FTANodeName).ToList();
+                    var nds = db.FTANodes.Where(item => resultNodes.Contains(item.Name) == true).Select(r => r.EventId).ToList();
+                    result.AnalysisStatus = "Ok";
+                    result.AnalysisNodeIds = nds;
+                }
+                else
+                {
+                    result.AnalysisStatus = "Error:" + exeString;
+                    result.AnalysisNodeIds = new List<string>();
                 }
 
-                return Ok(new FTATreeViewModel(ftaTree, db));
+                return Ok(result);
             }
             else
             {

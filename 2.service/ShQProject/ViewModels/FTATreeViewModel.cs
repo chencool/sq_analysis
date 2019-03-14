@@ -19,8 +19,6 @@ namespace Dxc.Shq.WebApi.ViewModels
         [Required]
         public Guid ProjectId { get; set; }
 
-        public bool Analysis { get; set; }
-
         public FTATreeRequestViewModel()
         {
         }

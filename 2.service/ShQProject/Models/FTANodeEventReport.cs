@@ -12,14 +12,6 @@ namespace Dxc.Shq.WebApi.Models
         [Key]
         public Guid Id { get; set; }
 
-        [ForeignKey("FTANode")]
-        public int FTANodeId { get; set; }
-        public FTANode FTANode { get; set; }
-
-        [ForeignKey("FTAProject")]
-        public Guid FTAProjectId { get; set; }
-        public FTAProject FTAProject { get; set; }
-
         [ForeignKey("FTAFailureType")]
         public int FTAFailureTypeId { get; set; }
         public FTAFailureType FTAFailureType { get; set; }
@@ -28,13 +20,16 @@ namespace Dxc.Shq.WebApi.Models
         public int FTAEventTypeId { get; set; }
         public FTAEventType FTAEventType { get; set; }
 
-        public double Value { get; set; }
+        public int FTANodeId { get; set; }
+        public Guid FTAProjectId { get; set; }
+
+        public double EventValue { get; set; }
 
         /// <summary>
         /// 0 means user input
         /// 1 mean calc result
         /// </summary>
-        public int ValueType { get; set; }
+        public int EventValueType { get; set; }
 
     }
 }

@@ -59,6 +59,10 @@ namespace Dxc.Shq.WebApi.Core
                 context.FTAEventTypes.Add(new FTAEventType() { Id = 1, Name = "单点事件" });
                 context.FTAEventTypes.Add(new FTAEventType() { Id = 2, Name = "双点事件" });
                 context.FTAEventTypes.Add(new FTAEventType() { Id = 3, Name = "安全事件" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 4, Name = "节点失效概率q",Description="存放各个节点的失效概率，可能由用户输入，或者计算获得" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 5, Name = "顶事件" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 6, Name = "底事件" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 7, Name = "最小割集" });
             }
 
             if (!context.FTAFailureTypes.Any())
@@ -68,6 +72,9 @@ namespace Dxc.Shq.WebApi.Core
                 context.FTAFailureTypes.Add(new FTAFailureType() { Id = 3, Name = "潜伏故障" });
                 context.FTAFailureTypes.Add(new FTAFailureType() { Id = 4, Name = "可探测双点故障" });
                 context.FTAFailureTypes.Add(new FTAFailureType() { Id = 5, Name = "安全故障" });
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 6, Name = "单点故障度量SPFM",Description= "存放根节点的单点故障度量SPFM"});
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 7, Name = "潜伏故障度量LFM", Description = "存放根节点的潜伏故障度量LFM"});
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 8, Name = "PMHF", Description = "存放根节点的PMHF" });
             }
 
             context.SaveChanges();
