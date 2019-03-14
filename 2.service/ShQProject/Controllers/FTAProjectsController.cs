@@ -16,6 +16,7 @@ using System.Web.Http.Description;
 using Dxc.Shq.WebApi.Core;
 using Dxc.Shq.WebApi.Models;
 using Dxc.Shq.WebApi.ViewModels;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 
 namespace Dxc.Shq.WebApi.Controllers
@@ -136,6 +137,50 @@ namespace Dxc.Shq.WebApi.Controllers
                     var nds = db.FTANodes.Where(item => resultNodes.Contains(item.Name) == true).Select(r => r.EventId).ToList();
                     result.AnalysisStatus = "Ok";
                     result.AnalysisNodeIds = nds;
+
+                    // remove C:\Users\phimath\Source\Repos\sq_analysis\2.service\packages\MySqlConnector.0.47.1\lib\net45\MySqlConnector.dll
+                    using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+                    {
+                        con.Open();
+                        var cmd = con.CreateCommand();
+                        cmd.CommandText = "SELECT ftanodes.eventid as nodeid,ftanodeeventreports.FTAEventTypeId,ftanodeeventreports.FTAFailureTypeId, ftanodeeventreports.EventValue,ftanodeeventreports.EventValueType  FROM ftanodeeventreports inner join ftanodes	on ftanodes.id = ftanodeeventreports.FTANodeId";
+                        using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                        {
+                            result.JsonNodeEvents = new List<JsonNodeEvent>();
+
+                            while (rdr.Read())
+                            {
+                                JsonNodeEvent e = new JsonNodeEvent();
+                                e.NodeId = rdr.GetString(0);
+                                e.EventId = rdr.GetInt32(1);
+                                e.FalureId = rdr.GetInt32(2);
+                                e.EventValue = rdr.GetDouble(3);
+                                e.EventValueType = rdr.GetInt32(4);
+                                result.JsonNodeEvents.Add(e);
+                            }
+                        }
+                    }
+
+                    using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+                    {
+                        con.Open();
+                        var cmd = con.CreateCommand();
+                        cmd.CommandText =string.Format( "SELECT FTAEventTypeId,FTAFailureTypeId,FailureRateQ,InvalidRate FROM shqdb.ftaeventreports where ftaprojectid = '{0}'",docs.Id);
+                        using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                        {
+                            result.JsonTreeEvents = new List<JsonTreeEvent>();
+
+                            while (rdr.Read())
+                            {
+                                JsonTreeEvent e = new JsonTreeEvent();
+                                e.EventId = rdr.GetInt32(0);
+                                e.FalureId = rdr.GetInt32(1);
+                                e.FailureRateQ = rdr.GetDouble(2);
+                                e.InvalidRate = rdr.GetInt32(3);
+                                result.JsonTreeEvents.Add(e);
+                            }
+                        }
+                    }
                 }
                 else
                 {

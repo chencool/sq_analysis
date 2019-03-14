@@ -115,4 +115,24 @@ namespace Dxc.Shq.WebApi.Core
         [Required]
         public int Index { get; set; }
     }
+
+    public class JsonNodeEvent
+    {
+        public string NodeId { get; set; }
+
+        public int EventId { get; set; }
+        public int FalureId { get; set; }
+
+        public double EventValue { get; set; }
+
+        public int EventValueType { get; set; }
+    }
+
+    public class JsonTreeEvent
+    {
+        public int EventId { get; set; }
+        public int FalureId { get; set; }
+        public double FailureRateQ { get; set; }
+        public double InvalidRate { get; set; }
+    }
 }
