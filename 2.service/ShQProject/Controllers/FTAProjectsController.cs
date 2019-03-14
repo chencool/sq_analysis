@@ -84,7 +84,7 @@ namespace Dxc.Shq.WebApi.Controllers
             var tr = docs.FTATrees.Where(item => item.Id == tree.Id).FirstOrDefault();
             if (tr == null)
             {
-                FTATree ftaTree = new FTATree() { Id = tree.Id, FTAProjectId = docs.Id, FTAProject = docs, Content = tree.Content, CreatedById = shqUser.IdentityUserId, CreatedTime = DateTime.Now, LastModifiedById = shqUser.IdentityUserId, LastModfiedTime = DateTime.Now };
+                FTATree ftaTree = new FTATree() { Id = tree.Id, FTAProjectId = docs.Id, FTAProject = docs, AnalysisStatus = 0, Content = tree.Content, CreatedById = shqUser.IdentityUserId, CreatedTime = DateTime.Now, LastModifiedById = shqUser.IdentityUserId, LastModfiedTime = DateTime.Now };
                 docs.FTATrees.Add(ftaTree);
                 await db.SaveChangesAsync();
 
@@ -122,7 +122,7 @@ namespace Dxc.Shq.WebApi.Controllers
             var tr = docs.FTATrees.Where(item => item.Id == tree.Id).FirstOrDefault();
             if (tr == null)
             {
-                FTATree ftaTree = new FTATree() { Id = tree.Id, FTAProjectId = docs.Id, FTAProject = docs, Content = tree.Content, CreatedById = shqUser.IdentityUserId, CreatedTime = DateTime.Now, LastModifiedById = shqUser.IdentityUserId, LastModfiedTime = DateTime.Now };
+                FTATree ftaTree = new FTATree() { Id = tree.Id, FTAProjectId = docs.Id, AnalysisStatus = 1, FTAProject = docs, Content = tree.Content, CreatedById = shqUser.IdentityUserId, CreatedTime = DateTime.Now, LastModifiedById = shqUser.IdentityUserId, LastModfiedTime = DateTime.Now };
                 docs.FTATrees.Add(ftaTree);
                 await db.SaveChangesAsync();
 
@@ -165,7 +165,7 @@ namespace Dxc.Shq.WebApi.Controllers
                     {
                         con.Open();
                         var cmd = con.CreateCommand();
-                        cmd.CommandText =string.Format( "SELECT FTAEventTypeId,FTAFailureTypeId,FailureRateQ,InvalidRate FROM shqdb.ftaeventreports where ftaprojectid = '{0}'",docs.Id);
+                        cmd.CommandText = string.Format("SELECT FTAEventTypeId,FTAFailureTypeId,FailureRateQ,InvalidRate FROM shqdb.ftaeventreports where ftaprojectid = '{0}'", docs.Id);
                         using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
                         {
                             result.JsonTreeEvents = new List<JsonTreeEvent>();
