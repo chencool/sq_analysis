@@ -87,7 +87,7 @@ namespace Dxc.Shq.WebApi.Controllers
             }
 
             db.Entry(pro).State = EntityState.Modified;
-            pro.Name = project.Name;
+            pro.ProjectName = project.Name;
             pro.Description = project.Description;
             pro.Tag = project.Tag;
             pro.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;

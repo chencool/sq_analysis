@@ -18,7 +18,7 @@
 
         public virtual List<FTANodeProperties> FTANodeProperties { get; set; } = new List<FTANodeProperties>();
 
-        public virtual List<FTANoteGate> FTANoteGates { get; set; } = new List<FTANoteGate>();
+        public virtual List<FTANodeGate> FTANodeGates { get; set; } = new List<FTANodeGate>();
 
         public virtual List<FTATree> FTATrees { get; set; } = new List<FTATree>();
 

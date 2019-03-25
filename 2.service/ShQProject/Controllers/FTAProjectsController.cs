@@ -134,7 +134,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 {
                     JsonFTATree resultTree = new JsonFTATree();
                     var resultNodes = db.FTAAnalysisResultByNames.Where(r => r.FTAProjectId == docs.Id).Select(item => item.FTANodeName).ToList();
-                    var nds = db.FTANodes.Where(item => resultNodes.Contains(item.Name) == true).Select(r => r.EventId).ToList();
+                    var nds = db.FTANodes.Where(item => resultNodes.Contains(item.NodeName) == true).Select(r => r.EventId).ToList();
                     result.AnalysisStatus = "Ok";
                     result.AnalysisNodeIds = nds;
 
@@ -200,7 +200,7 @@ namespace Dxc.Shq.WebApi.Controllers
         {
             db.FTANodes.RemoveRange(docs.FTANodes);
             db.FTANodeProperties.RemoveRange(docs.FTANodeProperties);
-            db.FTANoteGates.RemoveRange(docs.FTANoteGates);
+            db.FTANodeGates.RemoveRange(docs.FTANodeGates);
 
             db.SaveChanges();
 
@@ -222,27 +222,27 @@ namespace Dxc.Shq.WebApi.Controllers
                     fn.FTAProject = docs;
                     fn.Index = node.Mode.Index;
                     fn.EventId = node.Id;
-                    fn.Name = node.Name;
+                    fn.NodeName = node.Name;
                     fn.Shape = node.Mode.Shape;
                     fn.Size = node.Mode.Size;
                     fn.X = node.Mode.X;
                     fn.Y = node.Mode.Y;
                     fn.ParentId = -1;
-                    fn.FTANoteGateId = -1;
+                    fn.FTANodeGateId = -1;
 
                     switch (node.ItemType.ToLower())
                     {
                         case "square":
-                            fn.FTANoteType = db.FTANoteTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANoteTypeRoot);
+                            fn.FTANodeType = db.FTANodeTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANodeTypeRoot);
                             break;
                         case "rectangle":
-                            fn.FTANoteType = db.FTANoteTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANoteTypeBrand);
+                            fn.FTANodeType = db.FTANodeTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANodeTypeBrand);
                             break;
                         case "round":
-                            fn.FTANoteType = db.FTANoteTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANoteTypeLeaf);
+                            fn.FTANodeType = db.FTANodeTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANodeTypeLeaf);
                             break;
                     }
-                    fn.FTANoteTypeId = fn.FTANoteType.Id;
+                    fn.FTANodeTypeId = fn.FTANodeType.Id;
 
                     docs.FTANodes.Add(fn);
 
@@ -274,33 +274,33 @@ namespace Dxc.Shq.WebApi.Controllers
                         var parentNode = tree.FTANodes.FirstOrDefault(item => item.Id == edge.Source);
                         if ("orgate,andgate,nongate".Contains(parentNode.ItemType.ToLower()))
                         {
-                            FTANoteGate gate = new FTANoteGate(); //to do
+                            FTANodeGate gate = new FTANodeGate(); //to do
                             gate.Id = gateId;
-                            gate.Name = parentNode.Name;
+                            gate.NodeGateName = parentNode.Name;
                             gate.FTAProjectId = docs.Id;
                             gate.FTAProject = docs;
                             switch (parentNode.ItemType.ToLower())
                             {
                                 case "orgate":
-                                    gate.FTANoteGateType = db.FTANoteGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANoteGateTypeOr);
+                                    gate.FTANodeGateType = db.FTANodeGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANodeGateTypeOr);
                                     break;
                                 case "andgate":
-                                    gate.FTANoteGateType = db.FTANoteGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANoteGateTypeAnd);
+                                    gate.FTANodeGateType = db.FTANodeGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANodeGateTypeAnd);
                                     break;
                                 case "nongate":
-                                    gate.FTANoteGateType = db.FTANoteGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANoteGateTypeXor);
+                                    gate.FTANodeGateType = db.FTANodeGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANodeGateTypeXor);
                                     break;
                             }
-                            gate.FTANoteGateTypeId = gate.FTANoteGateType.Id;
+                            gate.FTANodeGateTypeId = gate.FTANodeGateType.Id;
                             gateId++;
-                            fn.FTANoteGateId = gate.Id;
+                            fn.FTANodeGateId = gate.Id;
 
                             var parentEdge = tree.FTAEdges.FirstOrDefault(item => item.Target == edge.Source);
                             var grandParentNode = FTANodesList.FirstOrDefault(item => item.Id == parentEdge.Source);
 
                             fn.ParentId = FTANodesList.IndexOf(grandParentNode) + 1;
 
-                            docs.FTANoteGates.Add(gate);
+                            docs.FTANodeGates.Add(gate);
                         }
                     }
                 }

@@ -45,7 +45,7 @@ namespace Dxc.Shq.WebApi.ViewModels
         {
             Project p = new Project();
             p.Id = Id;
-            p.Name = Name;
+            p.ProjectName = Name;
             p.Description = Description;
             p.Tag = Tag;
             p.Type = Type;
@@ -79,7 +79,7 @@ namespace Dxc.Shq.WebApi.ViewModels
             }
 
             Id = project.Id;
-            Name = project.Name;
+            Name = project.ProjectName;
             Description = project.Description;
             Type = project.Type;
             Tag = project.Tag;

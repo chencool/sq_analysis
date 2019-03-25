@@ -25,13 +25,13 @@
 
         public DbSet<FTANode> FTANodes { get; set; }
 
-        public DbSet<FTANoteType> FTANoteTypes { get; set; }
+        public DbSet<FTANodeType> FTANodeTypes { get; set; }
 
-        public DbSet<FTANoteGateType> FTANoteGateTypes { get; set; }
+        public DbSet<FTANodeGateType> FTANodeGateTypes { get; set; }
 
         public DbSet<FTANodeProperties> FTANodeProperties { get; set; }
 
-        public DbSet<FTANoteGate> FTANoteGates { get; set; }
+        public DbSet<FTANodeGate> FTANodeGates { get; set; }
 
         public DbSet<FTAEventType> FTAEventTypes { get; set; }
 

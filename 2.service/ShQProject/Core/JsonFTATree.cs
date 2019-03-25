@@ -80,7 +80,7 @@ namespace Dxc.Shq.WebApi.Core
         public int Y { get; set; }
         [Required]
         public int Index { get; set; }
-        public string Note { get; set; }
+        public string Node { get; set; }
     }
 
     public class JsonFTANode

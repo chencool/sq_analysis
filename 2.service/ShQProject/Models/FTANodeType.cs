@@ -6,7 +6,7 @@ using System.Web;
 
 namespace Dxc.Shq.WebApi.Models
 {
-    public class FTANoteGateType
+    public class FTANodeType
     {
         [Key]
         public int Id { get; set; }

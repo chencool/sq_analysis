@@ -40,41 +40,41 @@ namespace Dxc.Shq.WebApi.Core
                 userRoleId = context.Roles.First(c => c.Name == "User").Id;
             }
 
-            if(!context.FTANoteTypes.Any())
+            if(!context.FTANodeTypes.Any())
             {
-                context.FTANoteTypes.Add(new FTANoteType() { Id = 1, Description = "ROOT" });
-                context.FTANoteTypes.Add(new FTANoteType() { Id = 2, Description = "BRANCH" });
-                context.FTANoteTypes.Add(new FTANoteType() { Id = 3, Description = "LEAF" });
+                context.FTANodeTypes.Add(new FTANodeType() { Id = 1, Description = "ROOT" });
+                context.FTANodeTypes.Add(new FTANodeType() { Id = 2, Description = "BRANCH" });
+                context.FTANodeTypes.Add(new FTANodeType() { Id = 3, Description = "LEAF" });
             }
 
-            if (!context.FTANoteGateTypes.Any())
+            if (!context.FTANodeGateTypes.Any())
             {
-                context.FTANoteGateTypes.Add(new FTANoteGateType() { Id = 1, Description = "AND" });
-                context.FTANoteGateTypes.Add(new FTANoteGateType() { Id = 2, Description = "OR" });
-                context.FTANoteGateTypes.Add(new FTANoteGateType() { Id = 3, Description = "XOR" });
+                context.FTANodeGateTypes.Add(new FTANodeGateType() { Id = 1, Description = "AND" });
+                context.FTANodeGateTypes.Add(new FTANodeGateType() { Id = 2, Description = "OR" });
+                context.FTANodeGateTypes.Add(new FTANodeGateType() { Id = 3, Description = "XOR" });
             }
 
             if (!context.FTAEventTypes.Any())
             {
-                context.FTAEventTypes.Add(new FTAEventType() { Id = 1, Name = "单点事件" });
-                context.FTAEventTypes.Add(new FTAEventType() { Id = 2, Name = "双点事件" });
-                context.FTAEventTypes.Add(new FTAEventType() { Id = 3, Name = "安全事件" });
-                context.FTAEventTypes.Add(new FTAEventType() { Id = 4, Name = "节点失效概率q",Description="存放各个节点的失效概率，可能由用户输入，或者计算获得" });
-                context.FTAEventTypes.Add(new FTAEventType() { Id = 5, Name = "顶事件" });
-                context.FTAEventTypes.Add(new FTAEventType() { Id = 6, Name = "底事件" });
-                context.FTAEventTypes.Add(new FTAEventType() { Id = 7, Name = "最小割集" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 1, EventName = "单点事件" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 2, EventName = "双点事件" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 3, EventName = "安全事件" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 4, EventName = "节点失效概率q",Description="存放各个节点的失效概率，可能由用户输入，或者计算获得" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 5, EventName = "顶事件" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 6, EventName = "底事件" });
+                context.FTAEventTypes.Add(new FTAEventType() { Id = 7, EventName = "最小割集" });
             }
 
             if (!context.FTAFailureTypes.Any())
             {
-                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 1, Name = "单点故障" });
-                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 2, Name = "残余故障" });
-                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 3, Name = "潜伏故障" });
-                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 4, Name = "可探测双点故障" });
-                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 5, Name = "安全故障" });
-                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 6, Name = "单点故障度量SPFM",Description= "存放根节点的单点故障度量SPFM"});
-                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 7, Name = "潜伏故障度量LFM", Description = "存放根节点的潜伏故障度量LFM"});
-                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 8, Name = "PMHF", Description = "存放根节点的PMHF" });
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 1, FailureTypeName = "单点故障" });
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 2, FailureTypeName = "残余故障" });
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 3, FailureTypeName = "潜伏故障" });
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 4, FailureTypeName = "可探测双点故障" });
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 5, FailureTypeName = "安全故障" });
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 6, FailureTypeName = "单点故障度量SPFM",Description= "存放根节点的单点故障度量SPFM"});
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 7, FailureTypeName = "潜伏故障度量LFM", Description = "存放根节点的潜伏故障度量LFM"});
+                context.FTAFailureTypes.Add(new FTAFailureType() { Id = 8, FailureTypeName = "PMHF", Description = "存放根节点的PMHF" });
             }
 
             context.SaveChanges();

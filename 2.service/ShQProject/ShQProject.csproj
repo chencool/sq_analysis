@@ -108,10 +108,10 @@
     <Compile Include="Models\FTAEventReport.cs" />
     <Compile Include="Models\FTAFailureType.cs" />
     <Compile Include="Models\FTANodeProperties.cs" />
-    <Compile Include="Models\FTANoteGate.cs" />
-    <Compile Include="Models\FTANoteGateType.cs" />
+    <Compile Include="Models\FTANodeGate.cs" />
+    <Compile Include="Models\FTANodeGateType.cs" />
     <Compile Include="Models\FTAEventType.cs" />
-    <Compile Include="Models\FTANoteType.cs" />
+    <Compile Include="Models\FTANodeType.cs" />
     <Compile Include="Models\FTAProject.cs" />
     <Compile Include="Models\DataBase.cs" />
     <Compile Include="Models\FTANode.cs" />

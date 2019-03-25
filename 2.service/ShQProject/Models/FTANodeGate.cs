@@ -7,16 +7,16 @@ using System.Web;
 
 namespace Dxc.Shq.WebApi.Models
 {
-    public class FTANoteGate
+    public class FTANodeGate
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         [Column(Order = 0)]
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string NodeGateName { get; set; }
 
-        [ForeignKey("FTANoteGateType")]
-        public int FTANoteGateTypeId { get; set; }
-        public FTANoteGateType FTANoteGateType { get; set; }
+        [ForeignKey("FTANodeGateType")]
+        public int FTANodeGateTypeId { get; set; }
+        public FTANodeGateType FTANodeGateType { get; set; }
 
         [Key, ForeignKey("FTAProject")]
         [Column(Order = 1)]

@@ -20,18 +20,17 @@
         [Column(Order = 0)]
         public int Id { get; set; }
 
-        public string Name { get; set; }
+        public string NodeName { get; set; }
 
         public int ParentId { get; set; }
 
-        //[ForeignKey("FTANoteGate")]
-        public int FTANoteGateId { get; set; }
-        //public FTANoteGate FTANoteGate { get; set; }
+        //[ForeignKey("FTANodeGate")]
+        public int FTANodeGateId { get; set; }
+        //public FTANodeGate FTANodeGate { get; set; }
 
-        [ForeignKey("FTANoteType")]
-        public int FTANoteTypeId { get; set; }
-        public FTANoteType FTANoteType { get; set; }
-
+        [ForeignKey("FTANodeType")]
+        public int FTANodeTypeId { get; set; }
+        public FTANodeType FTANodeType { get; set; }
 
         [Key, ForeignKey("FTAProject")]
         [Column(Order = 1)]

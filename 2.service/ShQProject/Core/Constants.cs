@@ -19,12 +19,12 @@ namespace Dxc.Shq.WebApi.Core
         public const int UserStatusAvailable = 1;
         public const int UserStatusDisable = 2;
 
-        public const int FTANoteTypeRoot= 1;
-        public const int FTANoteTypeBrand= 2;
-        public const int FTANoteTypeLeaf= 3;
+        public const int FTANodeTypeRoot= 1;
+        public const int FTANodeTypeBrand= 2;
+        public const int FTANodeTypeLeaf= 3;
 
-        public const int FTANoteGateTypeAnd = 1;
-        public const int FTANoteGateTypeOr = 2;
-        public const int FTANoteGateTypeXor = 3;
+        public const int FTANodeGateTypeAnd = 1;
+        public const int FTANodeGateTypeOr = 2;
+        public const int FTANodeGateTypeXor = 3;
     }
 }
