@@ -20,14 +20,11 @@
 
         public DbSet<ProjectShqUsers> ProjectShqUsers { get; set; }
 
-        public DbSet<FTAAnalysisResultById> FTAAnalysisResultByIds { get; set; }
-        public DbSet<FTAAnalysisResultByName> FTAAnalysisResultByNames { get; set; }
-
-        public DbSet<FTANode> FTANodes { get; set; }
-
         public DbSet<FTANodeType> FTANodeTypes { get; set; }
 
         public DbSet<FTANodeGateType> FTANodeGateTypes { get; set; }
+
+        public DbSet<FTANode> FTANodes { get; set; }
 
         public DbSet<FTANodeProperties> FTANodeProperties { get; set; }
 
@@ -40,5 +37,8 @@
         public DbSet<FTANodeEventReport> FTANodeEventReports { get; set; }
 
         public DbSet<FTAEventReport> FTAEventReports { get; set; }
+
+        public DbSet<FTAAnalysisResultById> FTAAnalysisResultByIds { get; set; }
+        public DbSet<FTAAnalysisResultByName> FTAAnalysisResultByNames { get; set; }
     }
 }

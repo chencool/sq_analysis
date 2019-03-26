@@ -53,6 +53,8 @@
         public double X { get; set; }
         public double Y { get; set; }
 
+        public double SmallFailureRateQ { get; set; }
+
         public int Index { get; set; }
 
         // event properties

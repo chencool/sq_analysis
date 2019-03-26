@@ -13,7 +13,7 @@ namespace Dxc.Shq.WebApi.Core
         public Configuration()
         {
             AutomaticMigrationsEnabled = true;
-            AutomaticMigrationDataLossAllowed = false;
+            AutomaticMigrationDataLossAllowed = true;//todo 如果为false 建立数据库就会失败需要考虑分析下原因
 
             SetSqlGenerator("MySql.Data.MySqlClient", new MySql.Data.Entity.MySqlMigrationSqlGenerator());
             CodeGenerator = new MySql.Data.Entity.MySqlMigrationCodeGenerator();

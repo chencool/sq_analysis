@@ -17,7 +17,6 @@ namespace Dxc.Shq.WebApi.Core
         [JsonProperty(PropertyName = "attributes")]
         public List<JsonFTAProperties> FTAProperties = new List<JsonFTAProperties>();
 
-        [Required]
         [JsonProperty(PropertyName = "nodes")]
         public List<JsonFTANode> FTANodes = new List<JsonFTANode>();
 
@@ -66,37 +65,25 @@ namespace Dxc.Shq.WebApi.Core
         /// </summary>
         public double ReferenceFailureRateq { get; set; }
     }
-    public class Mode
-    {
-        [Required]
-        public string Size { get; set; }
-        [Required]
-        public string Shape { get; set; }
-        [Required]
-        public string Color { get; set; }
-        [Required]
-        public int X { get; set; }
-        [Required]
-        public int Y { get; set; }
-        [Required]
-        public int Index { get; set; }
-        public string Node { get; set; }
-    }
+    
+        
 
     public class JsonFTANode
     {
         [Required]
         public string Id { get; set; }
-        [Required]
         public string Name { get; set; }
-        [Required]
         public string Type { get; set; }
-        [Required]
         public string ItemType { get; set; }
         public string Des { get; set; }
-
-        [Required]
-        public Mode Mode { get; set; }
+        public string Size { get; set; }
+        public string Shape { get; set; }
+        public string Color { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public int Index { get; set; }
+        public string Node { get; set; }
+        public double SmallFailureRateQ { get; set; }
     }
 
 
@@ -104,15 +91,11 @@ namespace Dxc.Shq.WebApi.Core
     {
         [Required]
         public string Source { get; set; }
-        [Required]
         public int SourceAnchor { get; set; }
         [Required]
         public string Target { get; set; }
-        [Required]
         public int TargetAnchor { get; set; }
-        [Required]
         public string Id { get; set; }
-        [Required]
         public int Index { get; set; }
     }
 

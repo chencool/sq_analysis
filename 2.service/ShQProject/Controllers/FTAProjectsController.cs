@@ -201,6 +201,7 @@ namespace Dxc.Shq.WebApi.Controllers
             db.FTANodes.RemoveRange(docs.FTANodes);
             db.FTANodeProperties.RemoveRange(docs.FTANodeProperties);
             db.FTANodeGates.RemoveRange(docs.FTANodeGates);
+            //db.FTAAnalysisResultByIds.RemoveRange(db.FTAAnalysisResultByIds.Where(item => item.FTAProjectId == docs.Id));
 
             db.SaveChanges();
 
@@ -220,15 +221,16 @@ namespace Dxc.Shq.WebApi.Controllers
                     nodeId++;
                     fn.FTAProjectId = docs.Id;
                     fn.FTAProject = docs;
-                    fn.Index = node.Mode.Index;
+                    fn.Index = node.Index;
                     fn.EventId = node.Id;
                     fn.NodeName = node.Name;
-                    fn.Shape = node.Mode.Shape;
-                    fn.Size = node.Mode.Size;
-                    fn.X = node.Mode.X;
-                    fn.Y = node.Mode.Y;
+                    fn.Shape = node.Shape;
+                    fn.Size = node.Size;
+                    fn.X = node.X;
+                    fn.Y = node.Y;
                     fn.ParentId = -1;
                     fn.FTANodeGateId = -1;
+                    fn.SmallFailureRateQ = node.SmallFailureRateQ;
 
                     switch (node.ItemType.ToLower())
                     {
