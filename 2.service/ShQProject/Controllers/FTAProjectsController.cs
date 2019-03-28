@@ -196,14 +196,36 @@ namespace Dxc.Shq.WebApi.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("api/FTAProjects/test")]
+        [ResponseType(typeof(JsonFTATree))]
+        public async Task<IHttpActionResult> TestFormat(JsonFTATree tree)
+        {
+            await db.SaveChangesAsync();
+
+            return Ok(tree);
+        }
+
         private JsonFTATree Analyze(FTAProject docs, JsonFTATree tree)
         {
+            var temp = ParseTree(docs, tree);
+
             db.FTANodes.RemoveRange(docs.FTANodes);
             db.FTANodeProperties.RemoveRange(docs.FTANodeProperties);
             db.FTANodeGates.RemoveRange(docs.FTANodeGates);
-            //db.FTAAnalysisResultByIds.RemoveRange(db.FTAAnalysisResultByIds.Where(item => item.FTAProjectId == docs.Id));
+
+            docs.FTANodes.AddRange(temp.FTANodes);
+            docs.FTANodeProperties.AddRange(temp.FTANodeProperties);
+            docs.FTANodeGates.AddRange(temp.FTANodeGates);
 
             db.SaveChanges();
+
+            return tree;
+        }
+
+        private FTAProject ParseTree(FTAProject docs, JsonFTATree tree)
+        {
+            FTAProject resultDocs = new FTAProject();
 
             int i = 1;
             int nodeId = 1;
@@ -246,7 +268,7 @@ namespace Dxc.Shq.WebApi.Controllers
                     }
                     fn.FTANodeTypeId = fn.FTANodeType.Id;
 
-                    docs.FTANodes.Add(fn);
+                    resultDocs.FTANodes.Add(fn);
 
                     // 获取属性
                     var property = tree.FTAProperties.FirstOrDefault(item => item.Name == node.Name);
@@ -266,7 +288,7 @@ namespace Dxc.Shq.WebApi.Controllers
                         fn.FTANodePropertiesId = fp.Id;
                         fn.FTANodeProperties = fp;
 
-                        docs.FTANodeProperties.Add(fp);
+                        resultDocs.FTANodeProperties.Add(fp);
                     }
 
                     // 获取 门 或父亲节点
@@ -298,11 +320,17 @@ namespace Dxc.Shq.WebApi.Controllers
                             fn.FTANodeGateId = gate.Id;
 
                             var parentEdge = tree.FTAEdges.FirstOrDefault(item => item.Target == edge.Source);
-                            var grandParentNode = FTANodesList.FirstOrDefault(item => item.Id == parentEdge.Source);
+                            if (parentEdge != null)
+                            {
+                                var grandParentNode = FTANodesList.FirstOrDefault(item => item.Id == parentEdge.Source);
 
-                            fn.ParentId = FTANodesList.IndexOf(grandParentNode) + 1;
+                                if (grandParentNode != null)
+                                {
+                                    fn.ParentId = FTANodesList.IndexOf(grandParentNode) + 1;
+                                }
+                            }
 
-                            docs.FTANodeGates.Add(gate);
+                            resultDocs.FTANodeGates.Add(gate);
                         }
                     }
                 }
@@ -312,9 +340,44 @@ namespace Dxc.Shq.WebApi.Controllers
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, ex.Message + ex.StackTrace));
             }
 
-            db.SaveChanges();
+            if (resultDocs.FTANodes.Count > 0)
+            {
+                foreach (var node in resultDocs.FTANodes)
+                {
+                    switch (node.FTANodeTypeId)
+                    {
+                        case 1:
+                            if (resultDocs.FTANodes.FirstOrDefault(item => item.ParentId == node.Id) == null)
+                            {
+                                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, "根节点没有子节点"));
+                            }
+                            break;
+                        case 2:
+                            if (resultDocs.FTANodes.FirstOrDefault(item => item.ParentId == node.Id) == null)
+                            {
+                                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, "中间节点没有子节点"));
+                            }
+                            break;
+                        case 3:
+                            if (resultDocs.FTANodes.FirstOrDefault(item => item.ParentId == node.Id) != null)
+                            {
+                                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, "叶子节点不能有子节点"));
+                            }
 
-            return tree;
+                            if (resultDocs.FTANodes.FirstOrDefault(item => item.Id == node.ParentId) == null)
+                            {
+                                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, "叶子节点没有父节点"));
+                            }
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, "没有节点"));
+            }
+
+            return resultDocs;
         }
 
         private string RunPythonAnalysis(Guid ftaProjectId)
@@ -339,36 +402,6 @@ namespace Dxc.Shq.WebApi.Controllers
                     }
                 }
             }
-        }
-
-        [HttpPost]
-        [Route("api/FTAProjects/test")]
-        [ResponseType(typeof(JsonFTATree))]
-        public async Task<IHttpActionResult> TestFormat(JsonFTATree tree)
-        {
-
-            string content = JsonConvert.SerializeObject(tree);
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var docs = db.FTAProjects.Include("Project").Where(item => item.ProjectId == tree.ProjectId).FirstOrDefault();
-            if (docs == null)
-            {
-                return NotFound();
-            }
-
-            if (ProjectHelper.HasUpdateAccess(docs.Project) == false)
-            {
-                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
-            }
-
-            Analyze(docs, tree);
-
-            await db.SaveChangesAsync();
-
-            return Ok(tree);
         }
 
         protected override void Dispose(bool disposing)
