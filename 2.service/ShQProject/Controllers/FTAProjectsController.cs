@@ -54,7 +54,7 @@ namespace Dxc.Shq.WebApi.Controllers
             }
             else
             {
-                return NotFound();
+                return Ok(new FTATreeViewModel(new FTATree() {FTAProjectId= docs.Id, FTAProject=docs }, db));
             }
         }
 
