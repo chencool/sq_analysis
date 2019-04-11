@@ -112,9 +112,11 @@
     <Compile Include="Models\FTANodeGateType.cs" />
     <Compile Include="Models\FTAEventType.cs" />
     <Compile Include="Models\FTANodeType.cs" />
+    <Compile Include="Models\FMEAProject.cs" />
     <Compile Include="Models\FTAProject.cs" />
     <Compile Include="Models\DataBase.cs" />
     <Compile Include="Models\FTANode.cs" />
+    <Compile Include="Models\FMEATree.cs" />
     <Compile Include="Models\FTATree.cs" />
     <Compile Include="Models\ProjectFile.cs" />
     <Compile Include="Models\ProjectFileTemplate.cs" />

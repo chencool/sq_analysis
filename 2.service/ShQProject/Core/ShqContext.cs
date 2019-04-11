@@ -16,6 +16,8 @@
 
         public DbSet<FTAProject> FTAProjects { get; set; }
 
+        public DbSet<FMEAProject> FMEAProjects { get; set; }
+
         public DbSet<ShqUser> ShqUsers { get; set; }
 
         public DbSet<ProjectShqUsers> ProjectShqUsers { get; set; }
