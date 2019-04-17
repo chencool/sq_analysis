@@ -1,7 +1,7 @@
 ﻿<!doctype html>
 <html lang="en">
 <head>
-  <script src="http://137.135.112.26/test/jquery-3.3.1.js"></script>
+  <script src="http://localhost:55011/test/jquery-3.3.1.js"></script>
 
 </head>
 <body>
@@ -20,7 +20,7 @@ All users: <p id="allUserData"></p><br>
 
 <div>
 	More General Testing:
-	<div>URL:<input id="testURL" type="text" name="fname" value="http://137.135.112.26/api" style="width:1500px;"><br></div>
+	<div>URL:<input id="testURL" type="text" name="fname" value="http://localhost:55011/api" style="width:1500px;"><br></div>
 	Input Data: <textarea cols="50" rows="20"  id ="inputData"></textarea> <br>
 	Method: <select id="methodOption">
 		<option value="GET">GET</option>
@@ -38,7 +38,7 @@ $("#btn01").click(function() {
 	var psw = $("#upsw").val();
 
 	$.ajax({
-	    url: 'http://137.135.112.26/oauth2/token',
+	    url: 'http://localhost:55011/oauth2/token',
 	    headers: {
 	        'Accept':'application/json',
 	        'Content-Type':'application/x-www-form-urlencoded'
@@ -61,7 +61,7 @@ $("#btn02").click(function() {
 	var tocken = 'bearer '+ $("#loginData").val();
 
 	$.ajax({
-	    url: 'http://137.135.112.26/api/ShqUsers/All',
+	    url: 'http://localhost:55011/api/ShqUsers/All',
 	    headers: {
 	        'Authorization': tocken,
 		'contentType': 'application/json'

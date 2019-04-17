@@ -54,6 +54,7 @@
         public double Y { get; set; }
 
         public double SmallFailureRateQ { get; set; }
+        public bool SmallFailureRateQValueType { get; set; } // true : user input; false: compute
 
         public int Index { get; set; }
 

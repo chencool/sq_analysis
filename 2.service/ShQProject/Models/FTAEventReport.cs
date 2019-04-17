@@ -20,9 +20,8 @@ namespace Dxc.Shq.WebApi.Models
         public int FTAFailureTypeId { get; set; }
         public FTAFailureType FTAFailureType { get; set; }
 
-        [ForeignKey("FTAEventType")]
-        public int FTAEventTypeId { get; set; }
-        public FTAEventType FTAEventType { get; set; }
+        public string NodeIds { get; set; }
+        public string NodeNames { get; set; }
 
         /// <summary>
         /// 失效率
