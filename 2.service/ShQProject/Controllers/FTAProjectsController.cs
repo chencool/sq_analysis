@@ -253,6 +253,7 @@ namespace Dxc.Shq.WebApi.Controllers
                     fn.ParentId = -1;
                     fn.FTANodeGateId = -1;
                     fn.SmallFailureRateQ = node.SmallFailureRateQ;
+                    fn.SmallFailureRateQValueType = node.SmallFailureRateQValueType;
 
                     switch (node.ItemType.ToLower())
                     {

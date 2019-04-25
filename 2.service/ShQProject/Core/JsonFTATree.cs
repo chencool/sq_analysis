@@ -81,6 +81,8 @@ namespace Dxc.Shq.WebApi.Core
         public int Index { get; set; }
         public string Node { get; set; }
         public double SmallFailureRateQ { get; set; }
+
+        public bool SmallFailureRateQValueType { get; set; } // true : user input; false: compute
     }
 
 
