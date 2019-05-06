@@ -26,8 +26,6 @@ namespace Dxc.Shq.WebApi.ViewModels
 
     public class FTATreeViewModel: FTATreeRequestViewModel
     {
-       
-
         public ShqUserRequestViewModel CreatedBy { get; set; }
 
         public string CreatedTime { get; set; }
@@ -46,10 +44,5 @@ namespace Dxc.Shq.WebApi.ViewModels
         }
 
         public string AnalysisStatus { get; set; }
-        public List<string> AnalysisNodeIds { get; set; }
-
-        public List<JsonNodeEvent> JsonNodeEvents { get; set; }
-
-        public List<JsonTreeEvent> JsonTreeEvents { get; set; }
     }
 }

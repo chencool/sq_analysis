@@ -37,7 +37,7 @@ namespace Dxc.Shq.WebApi.ViewModels
         public double LFM { get; set; }
         public double PMHF { get; set; }
 
-        public List<string> AnalysisNodeIds = new List<string>();
+        public string AnalysisNodeIds;
 
         public List<FTATreeReportP1RowViewModel> TableP1 { get; set; } = new List<FTATreeReportP1RowViewModel>();
         public List<FTATreeReportP2RowViewModel> TableP2 { get; set; } = new List<FTATreeReportP2RowViewModel>();

@@ -133,10 +133,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 string exeString = RunPythonAnalysis(docs.Id);
                 if (exeString == null)
                 {
-                    var resultNodes = db.FTAAnalysisResultByNames.Where(r => r.FTAProjectId == docs.Id).Select(item => item.FTANodeName).ToList();
-                    var nds = db.FTANodes.Where(item => resultNodes.Contains(item.NodeName) == true).Select(r => r.EventId).ToList();
                     result.AnalysisStatus = "Ok";
-                    result.AnalysisNodeIds = nds;
 
                     foreach (var jsNode in jsonFTATree.FTANodes)
                     {
@@ -204,7 +201,6 @@ namespace Dxc.Shq.WebApi.Controllers
                 else
                 {
                     result.AnalysisStatus = "Error:" + exeString;
-                    result.AnalysisNodeIds = new List<string>();
                 }
 
                 return Ok(result);
@@ -239,9 +235,28 @@ namespace Dxc.Shq.WebApi.Controllers
 
             FTATreeReportViewModel result = new FTATreeReportViewModel();
 
-            var resultNodes = db.FTAAnalysisResultByNames.Where(r => r.FTAProjectId == docs.Id).Select(item => item.FTANodeName).ToList();
-            var nds = db.FTANodes.Where(item => resultNodes.Contains(item.NodeName) == true).Select(r => r.EventId).ToList();
-            result.AnalysisNodeIds = nds;
+            var resultNodes = db.FTAAnalysisResultByNames.Where(r => r.FTAProjectId == docs.Id).ToList();
+            Dictionary<int, List<string>> dic = new Dictionary<int, List<string>>();
+
+            if (resultNodes != null)
+            {
+                foreach (var nodeName in resultNodes)
+                {
+                    if(dic.ContainsKey(nodeName.BranchId)==false)
+                    {
+                        dic.Add(nodeName.BranchId, new List<string>());
+                    }
+
+                    var nds = db.FTANodes.Where(item => item.NodeName == nodeName.FTANodeName).Select(r => r.EventId).ToList();
+
+                    dic[nodeName.BranchId].AddRange(nds);
+                }
+            }
+
+            if(dic.Values != null)
+            {
+                result.AnalysisNodeIds = JsonConvert.SerializeObject(dic.Values);
+            }
 
             using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
             {
