@@ -16,6 +16,8 @@ namespace Dxc.Shq.WebApi.Models
         public Guid FTAProjectId { get; set; }
         public FTAProject FTAProject { get; set; }
 
+        public string Name { get; set; }
+
         /// <summary>
         /// 失效概率Q
         /// </summary>
@@ -25,6 +27,7 @@ namespace Dxc.Shq.WebApi.Models
         /// 失效率 lambda
         /// </summary>
         public double InvalidRate { get; set; }
+        public bool InvalidRateValueIsModifiedByUser { get; set; }
 
         /// <summary>
         /// 故障时间

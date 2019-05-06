@@ -54,7 +54,7 @@ namespace Dxc.Shq.WebApi.Controllers
             }
             else
             {
-                return Ok(new FTATreeViewModel(new FTATree() {FTAProjectId= docs.Id, FTAProject=docs }, db));
+                return Ok(new FTATreeViewModel(new FTATree() { FTAProjectId = docs.Id, FTAProject = docs }, db));
             }
         }
 
@@ -126,61 +126,80 @@ namespace Dxc.Shq.WebApi.Controllers
                 docs.FTATrees.Add(ftaTree);
                 await db.SaveChangesAsync();
 
-                Analyze(docs, JsonConvert.DeserializeObject<JsonFTATree>(tree.Content));
+                var jsonFTATree = JsonConvert.DeserializeObject<JsonFTATree>(tree.Content);
+                Analyze(docs, jsonFTATree);
                 var result = new FTATreeViewModel(ftaTree, db);
 
                 string exeString = RunPythonAnalysis(docs.Id);
                 if (exeString == null)
                 {
-                    JsonFTATree resultTree = new JsonFTATree();
                     var resultNodes = db.FTAAnalysisResultByNames.Where(r => r.FTAProjectId == docs.Id).Select(item => item.FTANodeName).ToList();
                     var nds = db.FTANodes.Where(item => resultNodes.Contains(item.NodeName) == true).Select(r => r.EventId).ToList();
                     result.AnalysisStatus = "Ok";
                     result.AnalysisNodeIds = nds;
 
-                    // remove C:\Users\phimath\Source\Repos\sq_analysis\2.service\packages\MySqlConnector.0.47.1\lib\net45\MySqlConnector.dll
-                    using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+                    foreach (var jsNode in jsonFTATree.FTANodes)
                     {
-                        con.Open();
-                        var cmd = con.CreateCommand();
-                        cmd.CommandText = "SELECT ftanodes.eventid as nodeid,ftanodeeventreports.FTAEventTypeId,ftanodeeventreports.FTAFailureTypeId, ftanodeeventreports.EventValue,ftanodeeventreports.EventValueType  FROM ftanodeeventreports inner join ftanodes	on ftanodes.id = ftanodeeventreports.FTANodeId";
-                        using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                        var node = db.FTANodes.FirstOrDefault(item => item.FTAProjectId == docs.Id && item.EventId == jsNode.Id);
+                        if (node != null)
                         {
-                            result.JsonNodeEvents = new List<JsonNodeEvent>();
-
-                            while (rdr.Read())
-                            {
-                                JsonNodeEvent e = new JsonNodeEvent();
-                                e.NodeId = rdr.GetString(0);
-                                e.EventId = rdr.GetInt32(1);
-                                e.FalureId = rdr.GetInt32(2);
-                                e.EventValue = rdr.GetDouble(3);
-                                e.EventValueType = rdr.GetInt32(4);
-                                result.JsonNodeEvents.Add(e);
-                            }
+                            jsNode.SmallFailureRateQ = node.SmallFailureRateQ;
                         }
                     }
 
-                    using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+                    foreach (var jsProperty in jsonFTATree.FTAProperties)
                     {
-                        con.Open();
-                        var cmd = con.CreateCommand();
-                        cmd.CommandText = string.Format("SELECT FTAEventTypeId,FTAFailureTypeId,FailureRateQ,InvalidRate FROM shqdb.ftaeventreports where ftaprojectid = '{0}'", docs.Id);
-                        using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                        var node = db.FTANodeProperties.FirstOrDefault(item => item.FTAProjectId == docs.Id && item.Name == jsProperty.Name);
+                        if (node != null)
                         {
-                            result.JsonTreeEvents = new List<JsonTreeEvent>();
-
-                            while (rdr.Read())
-                            {
-                                JsonTreeEvent e = new JsonTreeEvent();
-                                e.EventId = rdr.GetInt32(0);
-                                e.FalureId = rdr.GetInt32(1);
-                                e.FailureRateQ = rdr.GetDouble(2);
-                                e.InvalidRate = rdr.GetInt32(3);
-                                result.JsonTreeEvents.Add(e);
-                            }
+                            jsProperty.InvalidRate = node.InvalidRate;
                         }
                     }
+                    result.Content = JsonConvert.SerializeObject(jsonFTATree);
+
+                    //// remove C:\Users\phimath\Source\Repos\sq_analysis\2.service\packages\MySqlConnector.0.47.1\lib\net45\MySqlConnector.dll
+                    //using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+                    //{
+                    //    con.Open();
+                    //    var cmd = con.CreateCommand();
+                    //    cmd.CommandText = "SELECT ftanodes.eventid as nodeid,ftanodeeventreportsreview.FTAEventTypeId,ftanodeeventreportsreview.FTAFailureTypeId, ftanodeeventreportsreview.EventValue,ftanodeeventreportsreview.EventValueType  FROM ftanodeeventreportsreview inner join ftanodes	on ftanodes.id = ftanodeeventreportsreview.FTANodeId";
+                    //    using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                    //    {
+                    //        result.JsonNodeEvents = new List<JsonNodeEvent>();
+
+                    //        while (rdr.Read())
+                    //        {
+                    //            JsonNodeEvent e = new JsonNodeEvent();
+                    //            e.NodeId = rdr.GetString(0);
+                    //            e.EventId = rdr.GetInt32(1);
+                    //            e.FalureId = rdr.GetInt32(2);
+                    //            e.EventValue = rdr.GetDouble(3);
+                    //            e.EventValueType = rdr.GetInt32(4);
+                    //            result.JsonNodeEvents.Add(e);
+                    //        }
+                    //    }
+                    //}
+
+                    //using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+                    //{
+                    //    con.Open();
+                    //    var cmd = con.CreateCommand();
+                    //    cmd.CommandText = string.Format("SELECT FTAEventTypeId,FTAFailureTypeId,FailureRateQ,InvalidRate FROM shqdb.ftaeventreports where ftaprojectid = '{0}'", docs.Id);
+                    //    using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                    //    {
+                    //        result.JsonTreeEvents = new List<JsonTreeEvent>();
+
+                    //        while (rdr.Read())
+                    //        {
+                    //            JsonTreeEvent e = new JsonTreeEvent();
+                    //            e.EventId = rdr.GetInt32(0);
+                    //            e.FalureId = rdr.GetInt32(1);
+                    //            e.FailureRateQ = rdr.GetDouble(2);
+                    //            e.InvalidRate = rdr.GetInt32(3);
+                    //            result.JsonTreeEvents.Add(e);
+                    //        }
+                    //    }
+                    //}
                 }
                 else
                 {
@@ -194,6 +213,169 @@ namespace Dxc.Shq.WebApi.Controllers
             {
                 return Conflict();
             }
+        }
+
+        [HttpGet]
+        [Route("api/FTAProjects/GetTreeReport")]
+        // POST: api/FTAProjects
+        [ResponseType(typeof(FTATreeReportViewModel))]
+        public IHttpActionResult GetFTAProjectTreeReport(Guid projectId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var docs = db.FTAProjects.Include("Project").Where(item => item.ProjectId == projectId).FirstOrDefault();
+            if (docs == null)
+            {
+                return NotFound();
+            }
+
+            if (ProjectHelper.HasUpdateAccess(docs.Project) == false)
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
+            }
+
+            FTATreeReportViewModel result = new FTATreeReportViewModel();
+
+            var resultNodes = db.FTAAnalysisResultByNames.Where(r => r.FTAProjectId == docs.Id).Select(item => item.FTANodeName).ToList();
+            var nds = db.FTANodes.Where(item => resultNodes.Contains(item.NodeName) == true).Select(r => r.EventId).ToList();
+            result.AnalysisNodeIds = nds;
+
+            using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+            {
+                con.Open();
+                var cmd = con.CreateCommand();
+                cmd.CommandText = "SELECT " +
+                                    "ftanodes.EventId as '事件ID',  " +
+                                    "(CASE shqdb.ftanodeeventreportsreview.FTAEventTypeId " +
+                                      "WHEN 1 THEN '单点事件' " +
+                                                "WHEN 2 THEN '双点事件' " +
+                                                "WHEN 3 THEN '安全事件' " +
+                                                "WHEN 4 THEN '节点失效概率' " +
+                                                "WHEN 5 THEN '顶事件' " +
+                                                "WHEN 6 THEN '底事件' " +
+                                                "WHEN 7 THEN '最小割集' " +
+                                                "ELSE '未知' " +
+                                                "END) as '事件类型', " +
+                                    "sum( if (FTAFailureTypeId = 1, EventValue, 0 ) ) AS '单点故障', " +
+                                    "sum( if (FTAFailureTypeId = 2, EventValue, 0 ) ) AS '残余故障', " +
+                                    "sum( if (FTAFailureTypeId = 3, EventValue, 0 ) ) AS '潜伏故障', " +
+                                    "sum( if (FTAFailureTypeId = 4, EventValue, 0 ) ) AS '可探测的双点故障', " +
+                                    "sum( if (FTAFailureTypeId = 5, EventValue, 0 ) ) AS '安全故障' " +
+                                "FROM " +
+                                    "shqdb.ftanodeeventreportsreview inner join shqdb.ftanodes on shqdb.ftanodeeventreportsreview.FTAProjectId = shqdb.ftanodes.FTAProjectId and shqdb.ftanodeeventreportsreview.FTANodeId = shqdb.ftanodes.id " +
+                                    "where shqdb.ftanodeeventreportsreview.FTAProjectId = '" + docs.Id.ToString() + "' " +
+                                "GROUP BY " +
+                                    "FTANodeId; ";
+                using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                {
+                    while (rdr.Read())
+                    {
+                        FTATreeReportP1RowViewModel row = new FTATreeReportP1RowViewModel();
+                        row.NodeId = rdr.GetString(0);
+                        row.EventName = rdr.GetString(1);
+                        row.SPE = rdr.GetDouble(2);
+                        row.DPE = rdr.GetDouble(3);
+                        row.SE = rdr.GetDouble(4);
+                        row.NFP = rdr.GetDouble(5);
+                        row.TE = rdr.GetDouble(6);
+                        result.TableP1.Add(row);
+                    }
+                }
+            }
+
+            using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+            {
+                con.Open();
+                var cmd = con.CreateCommand();
+                cmd.CommandText = "SELECT " +
+                                    "(CASE FTAFailureTypeId " +
+                                      "WHEN 1 THEN '单点故障' " +
+                                                "WHEN 2 THEN '残余故障' " +
+                                                "WHEN 3 THEN '潜伏故障' " +
+                                                "WHEN 4 THEN '可探测的双点故障' " +
+                                                "WHEN 5 THEN '安全故障' " +
+                                                "ELSE '未知' " +
+                                                "END) as '故障类型', " +
+                                    "shqdb.FTAProjectReports.ProjectValue as '失效率', " +
+                                    "ftanodes.EventId as '事件ID', " +
+                                    "(CASE FTAEventTypeId " +
+                                      "WHEN 1 THEN '单点事件' " +
+                                                "WHEN 2 THEN '双点事件' " +
+                                                "WHEN 3 THEN '安全事件' " +
+                                                "WHEN 4 THEN '节点失效概率' " +
+                                                "WHEN 5 THEN '顶事件' " +
+                                                "WHEN 6 THEN '底事件' " +
+                                                "WHEN 7 THEN '最小割集' " +
+                                                "ELSE '未知' " +
+                                                "END) as '事件名称', " +
+                                    "EventValue as '故障率' " +
+                                "FROM " +
+                                    "shqdb.ftanodeeventreportsreview inner join shqdb.ftanodes on shqdb.ftanodeeventreportsreview.FTAProjectId = shqdb.ftanodes.FTAProjectId and shqdb.ftanodeeventreportsreview.FTANodeId = shqdb.ftanodes.id " +
+                                    "inner join shqdb.FTAProjectReports on shqdb.FTAProjectReports.FTAProjectId = shqdb.ftanodeeventreportsreview.FTAProjectId and shqdb.FTAProjectReports.ProjectValueType = shqdb.ftanodeeventreportsreview.FTAFailureTypeId " +
+                                "where FTAFailureTypeId< 6 and shqdb.ftanodeeventreportsreview.FTAProjectId = '" + docs.Id.ToString() + "' " +
+                                "order by FTAFailureTypeId asc; ";
+                using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                {
+                    while (rdr.Read())
+                    {
+                        FTATreeReportP2RowViewModel row = new FTATreeReportP2RowViewModel();
+                        row.FailureName = rdr.GetString(0);
+                        row.InvalidValue = rdr.GetDouble(1);
+                        row.NodeId = rdr.GetString(2);
+                        row.EventName = rdr.GetString(3);
+                        row.FailureValue = rdr.GetDouble(4);
+                        result.TableP2.Add(row);
+                    }
+                }
+            }
+
+            using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+            {
+                con.Open();
+                var cmd = con.CreateCommand();
+                cmd.CommandText = "select ProjectValue from shqdb.ftaprojectreports where shqdb.ftaprojectreports.FTAProjectId = '" + docs.Id.ToString() + "' " + " and ProjectValueType = 6 limit 1;";
+                using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                {
+                    while (rdr.Read())
+                    {
+                        result.SPFM = rdr.GetDouble(0);
+                    }
+                }
+            }
+
+            using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+            {
+                con.Open();
+                var cmd = con.CreateCommand();
+                cmd.CommandText = "select ProjectValue from shqdb.ftaprojectreports where shqdb.ftaprojectreports.FTAProjectId = '" + docs.Id.ToString() + "' " + " and ProjectValueType = 7 limit 1;";
+                using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                {
+                    while (rdr.Read())
+                    {
+                        result.LFM = rdr.GetDouble(0);
+                    }
+                }
+            }
+
+            using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+            {
+                con.Open();
+                var cmd = con.CreateCommand();
+                cmd.CommandText = "select ProjectValue from shqdb.ftaprojectreports where shqdb.ftaprojectreports.FTAProjectId = '" + docs.Id.ToString() + "' " + " and ProjectValueType = 8 limit 1;";
+                using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                {
+                    while (rdr.Read())
+                    {
+                        result.PMHF = rdr.GetDouble(0);
+                    }
+                }
+            }
+
+
+            return Ok(result);
         }
 
         [HttpPost]
@@ -253,7 +435,7 @@ namespace Dxc.Shq.WebApi.Controllers
                     fn.ParentId = -1;
                     fn.FTANodeGateId = -1;
                     fn.SmallFailureRateQ = node.SmallFailureRateQ;
-                    fn.SmallFailureRateQValueType = node.SmallFailureRateQValueType;
+                    fn.QValueIsModifiedByUser = node.SmallFailureRateQValueType;
 
                     switch (node.ItemType.ToLower())
                     {
@@ -279,11 +461,13 @@ namespace Dxc.Shq.WebApi.Controllers
                         fp.Id = Guid.NewGuid();
                         fp.FTAProjectId = docs.Id;
                         fp.FTAProject = docs;
+                        fp.Name = property.Name;
                         fp.DClf = property.DClf;
                         fp.DCrf = property.DCrf;
                         fp.FailureRateQ = property.FailureRateQ;
                         fp.FailureTime = property.FailureTime;
                         fp.InvalidRate = property.InvalidRate;
+                        fp.InvalidRateValueIsModifiedByUser = property.InvalidRateValueIsModifiedByUser;
                         fp.ReferenceFailureRateq = property.ReferenceFailureRateq;
 
                         fn.FTANodePropertiesId = fp.Id;
@@ -376,6 +560,26 @@ namespace Dxc.Shq.WebApi.Controllers
             else
             {
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, "没有节点"));
+            }
+
+            int maxLayer = int.Parse(ConfigurationManager.AppSettings["MaxLayer"]);
+
+            for (int k = 0; k < resultDocs.FTANodes.Count; k++)
+            {
+                int layer = 0;
+                var node = resultDocs.FTANodes[k];
+                while (node != null && node.ParentId != -1 && layer <= maxLayer)
+                {
+                    layer++;
+                    node = resultDocs.FTANodes.FirstOrDefault(item => item.Id == node.ParentId);
+                }
+
+                if (layer == maxLayer)
+                {
+                    throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, "超出最大允许深度：" + maxLayer));
+                }
+
+                resultDocs.FTANodes[k].LayerNumber = layer;
             }
 
             return resultDocs;

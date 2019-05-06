@@ -38,7 +38,7 @@
 
         public DbSet<FTANodeEventReport> FTANodeEventReports { get; set; }
 
-        public DbSet<FTAEventReport> FTAEventReports { get; set; }
+        public DbSet<FTAProjectReport> FTAEventReports { get; set; }
 
         public DbSet<FTAAnalysisResultById> FTAAnalysisResultByIds { get; set; }
         public DbSet<FTAAnalysisResultByName> FTAAnalysisResultByNames { get; set; }

@@ -42,6 +42,8 @@ namespace Dxc.Shq.WebApi.Core
         /// </summary>
         public double InvalidRate { get; set; }
 
+        public bool InvalidRateValueIsModifiedByUser { get; set; }
+
         /// <summary>
         /// 故障时间
         /// </summary>

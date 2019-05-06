@@ -54,9 +54,11 @@
         public double Y { get; set; }
 
         public double SmallFailureRateQ { get; set; }
-        public bool SmallFailureRateQValueType { get; set; } // true : user input; false: compute
+        public bool QValueIsModifiedByUser { get; set; } // true : user input; false: compute
 
         public int Index { get; set; }
+
+        public int LayerNumber { get; set; }
 
         // event properties
         public string EventId { get; set; }
