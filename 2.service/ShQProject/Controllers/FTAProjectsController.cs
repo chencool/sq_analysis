@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
@@ -716,35 +717,67 @@ namespace Dxc.Shq.WebApi.Controllers
 
         private string RunPythonAnalysis(Guid ftaProjectId)
         {
-            var p = new Process();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardOutput = true;
-            string eOut = null;
-            p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.Arguments = string.Format("\"{0}\" --C={1}", ConfigurationManager.AppSettings["PythonScripts"], ftaProjectId.ToString());
-            p.ErrorDataReceived += new DataReceivedEventHandler((sender, e) =>
-            { eOut += e.Data; });
-            p.StartInfo.FileName = ConfigurationManager.AppSettings["PythonExe"];
-            p.Start();
-
-            // To avoid deadlocks, use an asynchronous read operation on at least one of the streams.  
-            p.BeginErrorReadLine();
-            StringBuilder sb = new StringBuilder();
-            while (!p.StandardOutput.EndOfStream)
+            int timeout = 5 * 60 * 1000;
+            using (Process process = new Process())
             {
-                sb.Append(p.StandardOutput.ReadLine());
-            }
+                process.StartInfo.FileName = ConfigurationManager.AppSettings["PythonExe"];
+                process.StartInfo.Arguments = string.Format("\"{0}\" --C={1}", ConfigurationManager.AppSettings["PythonScripts"], ftaProjectId.ToString());
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.RedirectStandardError = true;
 
-            p.WaitForExit();
+                StringBuilder outputMessage = new StringBuilder();
+                StringBuilder errorMessage = new StringBuilder();
+                using (AutoResetEvent outputWaitHandle = new AutoResetEvent(false))
+                using (AutoResetEvent errorWaitHandle = new AutoResetEvent(false))
+                {
+                    process.OutputDataReceived += (sender, e) => {
+                        if (e.Data == null)
+                        {
+                            outputWaitHandle.Set();
+                        }
+                        else
+                        {
+                            outputMessage.AppendLine(e.Data);
+                        }
+                    };
+                    process.ErrorDataReceived += (sender, e) =>
+                    {
+                        if (e.Data == null)
+                        {
+                            errorWaitHandle.Set();
+                        }
+                        else
+                        {
+                            errorMessage.AppendLine(e.Data);
+                        }
+                    };
 
-            string result = sb.ToString();
-            if (result.Contains("the program is completed"))
-            {
-                return null;
-            }
-            else
-            {
-                return result;
+                    process.Start();
+
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+
+                    if (process.WaitForExit(timeout) &&
+                        outputWaitHandle.WaitOne(timeout) &&
+                        errorWaitHandle.WaitOne(timeout))
+                    {
+                        string result = outputMessage.ToString() + errorMessage.ToString();
+                        if (result.Contains("the program is completed"))
+                        {
+                            return null;
+                        }
+                        else
+                        {
+                            return result;
+                        }
+                    }
+                    else
+                    {
+                        // Timed out.
+                        return "Time out to process the FTA analysis request";
+                    }
+                }
             }
         }
 

@@ -4,9 +4,9 @@
     "\\2.service",
     "\\2.service\\ShQProject",
     "\\2.service\\ShQProject\\Controllers",
+    "\\2.service\\ShQProject\\Core",
     "\\2.service\\ShQProject\\test",
     "\\3.calculate"
   ],
-  "SelectedNode": "\\2.service\\ShQProject\\test\\fmeaScript.js",
   "PreviewInSolutionExplorer": false
 }
