@@ -9,13 +9,15 @@ namespace Dxc.Shq.WebApi.ViewModels
     {
         public string NodeId { get; set; }
 
+        public string NodeName { get; set; }
+
         public string EventName { get; set; }
 
-        public double SPE { get; set; }
-        public double DPE { get; set; }
-        public double SE { get; set; }
-        public double NFP { get; set; }
-        public double TE { get; set; }
+        public double SinglePointEvent { get; set; }
+        public double DualPointEvent { get; set; }
+        public double SafeEvent { get; set; }
+        public double NodeFailureProbability { get; set; }
+        public double TopEvent { get; set; }
     }
 
     public class FTATreeReportP2RowViewModel
@@ -26,6 +28,8 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         public string NodeId { get; set; }
 
+        public string NodeName { get; set; }
+
         public string EventName { get; set; }
 
         public double FailureValue { get; set; }
@@ -33,11 +37,23 @@ namespace Dxc.Shq.WebApi.ViewModels
 
     public class FTATreeReportViewModel
     {
-        public double SPFM { get; set; }
-        public double LFM { get; set; }
-        public double PMHF { get; set; }
+        public double SinglePointFaultMeasure { get; set; }
+        public double LatentFaultMeasure { get; set; }
+        public double RandomFaultMeasure { get; set; }
 
-        public string AnalysisNodeIds;
+        public string SinglePointEventIds;
+        public string SinglePointEventNames;
+        public string DualPointEventIds;
+        public string DualPointEventNames;
+        public string SafeEventIds;
+        public string SafeEventNames;
+        public string TopEventIds;
+        public string TopEventNames;
+        public string BaseEventIds;
+        public string BaseEventNames;
+
+        public string MinimalCutSetIds;
+        public string MinimalCutSetNames;
 
         public List<FTATreeReportP1RowViewModel> TableP1 { get; set; } = new List<FTATreeReportP1RowViewModel>();
         public List<FTATreeReportP2RowViewModel> TableP2 { get; set; } = new List<FTATreeReportP2RowViewModel>();

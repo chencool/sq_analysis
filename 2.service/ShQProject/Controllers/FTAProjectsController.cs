@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
@@ -240,9 +241,11 @@ namespace Dxc.Shq.WebApi.Controllers
 
             if (resultNodes != null)
             {
+                result.MinimalCutSetNames = JsonConvert.SerializeObject(resultNodes.Select(item => item.FTANodeName).ToList());
+
                 foreach (var nodeName in resultNodes)
                 {
-                    if(dic.ContainsKey(nodeName.BranchId)==false)
+                    if (dic.ContainsKey(nodeName.BranchId) == false)
                     {
                         dic.Add(nodeName.BranchId, new List<string>());
                     }
@@ -253,9 +256,11 @@ namespace Dxc.Shq.WebApi.Controllers
                 }
             }
 
-            if(dic.Values != null)
+
+
+            if (dic.Values != null)
             {
-                result.AnalysisNodeIds = JsonConvert.SerializeObject(dic.Values);
+                result.MinimalCutSetIds = JsonConvert.SerializeObject(dic.Values);
             }
 
             using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
@@ -278,7 +283,8 @@ namespace Dxc.Shq.WebApi.Controllers
                                     "sum( if (FTAFailureTypeId = 2, EventValue, 0 ) ) AS '残余故障', " +
                                     "sum( if (FTAFailureTypeId = 3, EventValue, 0 ) ) AS '潜伏故障', " +
                                     "sum( if (FTAFailureTypeId = 4, EventValue, 0 ) ) AS '可探测的双点故障', " +
-                                    "sum( if (FTAFailureTypeId = 5, EventValue, 0 ) ) AS '安全故障' " +
+                                    "sum( if (FTAFailureTypeId = 5, EventValue, 0 ) ) AS '安全故障', " +
+                                    "shqdb.ftanodes.NodeName " +
                                 "FROM " +
                                     "shqdb.ftanodeeventreportsreview inner join shqdb.ftanodes on shqdb.ftanodeeventreportsreview.FTAProjectId = shqdb.ftanodes.FTAProjectId and shqdb.ftanodeeventreportsreview.FTANodeId = shqdb.ftanodes.id " +
                                     "where shqdb.ftanodeeventreportsreview.FTAProjectId = '" + docs.Id.ToString() + "' " +
@@ -291,11 +297,12 @@ namespace Dxc.Shq.WebApi.Controllers
                         FTATreeReportP1RowViewModel row = new FTATreeReportP1RowViewModel();
                         row.NodeId = rdr.GetString(0);
                         row.EventName = rdr.GetString(1);
-                        row.SPE = rdr.GetDouble(2);
-                        row.DPE = rdr.GetDouble(3);
-                        row.SE = rdr.GetDouble(4);
-                        row.NFP = rdr.GetDouble(5);
-                        row.TE = rdr.GetDouble(6);
+                        row.SinglePointEvent = rdr.GetDouble(2);
+                        row.DualPointEvent = rdr.GetDouble(3);
+                        row.SafeEvent = rdr.GetDouble(4);
+                        row.NodeFailureProbability = rdr.GetDouble(5);
+                        row.TopEvent = rdr.GetDouble(6);
+                        row.NodeName = rdr.GetString(7);
                         result.TableP1.Add(row);
                     }
                 }
@@ -326,7 +333,8 @@ namespace Dxc.Shq.WebApi.Controllers
                                                 "WHEN 7 THEN '最小割集' " +
                                                 "ELSE '未知' " +
                                                 "END) as '事件名称', " +
-                                    "EventValue as '故障率' " +
+                                    "EventValue as '故障率', " +
+                                     "shqdb.ftanodes.NodeName " +
                                 "FROM " +
                                     "shqdb.ftanodeeventreportsreview inner join shqdb.ftanodes on shqdb.ftanodeeventreportsreview.FTAProjectId = shqdb.ftanodes.FTAProjectId and shqdb.ftanodeeventreportsreview.FTANodeId = shqdb.ftanodes.id " +
                                     "inner join shqdb.FTAProjectReports on shqdb.FTAProjectReports.FTAProjectId = shqdb.ftanodeeventreportsreview.FTAProjectId and shqdb.FTAProjectReports.ProjectValueType = shqdb.ftanodeeventreportsreview.FTAFailureTypeId " +
@@ -342,6 +350,7 @@ namespace Dxc.Shq.WebApi.Controllers
                         row.NodeId = rdr.GetString(2);
                         row.EventName = rdr.GetString(3);
                         row.FailureValue = rdr.GetDouble(4);
+                        row.NodeName = rdr.GetString(5);
                         result.TableP2.Add(row);
                     }
                 }
@@ -356,7 +365,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 {
                     while (rdr.Read())
                     {
-                        result.SPFM = rdr.GetDouble(0);
+                        result.SinglePointFaultMeasure = rdr.GetDouble(0);
                     }
                 }
             }
@@ -370,7 +379,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 {
                     while (rdr.Read())
                     {
-                        result.LFM = rdr.GetDouble(0);
+                        result.LatentFaultMeasure = rdr.GetDouble(0);
                     }
                 }
             }
@@ -384,11 +393,116 @@ namespace Dxc.Shq.WebApi.Controllers
                 {
                     while (rdr.Read())
                     {
-                        result.PMHF = rdr.GetDouble(0);
+                        result.RandomFaultMeasure = rdr.GetDouble(0);
                     }
                 }
             }
 
+            using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+            {
+                con.Open();
+                var cmd = con.CreateCommand();
+                cmd.CommandText = "select shqdb.ftanodes.EventId, shqdb.ftanodes.NodeName from shqdb.ftanodeeventreports " +
+                                    "inner join shqdb.ftanodes on shqdb.ftanodeeventreports.FTAProjectId = shqdb.ftanodes.FTAProjectId and shqdb.ftanodeeventreports.FTANodeId = shqdb.ftanodes.id " +
+                                    "where FTAEventTypeId = 5 and shqdb.ftanodeeventreports.FTAProjectId = '" + docs.Id.ToString() + "' " +
+                                    "limit 1";
+                using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                {
+                    while (rdr.Read())
+                    {
+                        result.TopEventIds = rdr.GetString(0);
+                        result.TopEventNames = rdr.GetString(1);
+                    }
+                }
+            }
+
+            using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+            {
+                con.Open();
+                var cmd = con.CreateCommand();
+                cmd.CommandText = "select shqdb.ftanodes.EventId, shqdb.ftanodes.NodeName,shqdb.ftanodeeventreports.FTAProjectId from shqdb.ftanodeeventreports " +
+                                    "inner join shqdb.ftanodes on shqdb.ftanodeeventreports.FTAProjectId = shqdb.ftanodes.FTAProjectId and shqdb.ftanodeeventreports.FTANodeId = shqdb.ftanodes.id " +
+                                    "where FTAEventTypeId = 6 and shqdb.ftanodeeventreports.FTAProjectId = '" + docs.Id.ToString() + "' ";
+                using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                {
+                    List<string> ids = new List<string>();
+                    List<string> names = new List<string>();
+                    while (rdr.Read())
+                    {
+                        ids.Add(rdr.GetString(0));
+                        names.Add(rdr.GetString(1));
+                    }
+
+                    result.BaseEventIds= JsonConvert.SerializeObject(ids);
+                    result.BaseEventNames = JsonConvert.SerializeObject(names);
+                }
+            }
+
+            using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+            {
+                con.Open();
+                var cmd = con.CreateCommand();
+                cmd.CommandText = "select shqdb.ftanodes.EventId, shqdb.ftanodes.NodeName,shqdb.ftanodeeventreports.FTAProjectId from shqdb.ftanodeeventreports " +
+                                    "inner join shqdb.ftanodes on shqdb.ftanodeeventreports.FTAProjectId = shqdb.ftanodes.FTAProjectId and shqdb.ftanodeeventreports.FTANodeId = shqdb.ftanodes.id " +
+                                    "where FTAEventTypeId = 1 and shqdb.ftanodeeventreports.FTAProjectId = '" + docs.Id.ToString() + "' ";
+                using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                {
+                    List<string> ids = new List<string>();
+                    List<string> names = new List<string>();
+                    while (rdr.Read())
+                    {
+                        ids.Add(rdr.GetString(0));
+                        names.Add(rdr.GetString(1));
+                    }
+
+                    result.SinglePointEventIds = JsonConvert.SerializeObject(ids);
+                    result.SinglePointEventNames = JsonConvert.SerializeObject(names);
+                }
+            }
+
+            using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+            {
+                con.Open();
+                var cmd = con.CreateCommand();
+                cmd.CommandText = "select shqdb.ftanodes.EventId, shqdb.ftanodes.NodeName,shqdb.ftanodeeventreports.FTAProjectId from shqdb.ftanodeeventreports " +
+                                    "inner join shqdb.ftanodes on shqdb.ftanodeeventreports.FTAProjectId = shqdb.ftanodes.FTAProjectId and shqdb.ftanodeeventreports.FTANodeId = shqdb.ftanodes.id " +
+                                    "where FTAEventTypeId = 2 and shqdb.ftanodeeventreports.FTAProjectId = '" + docs.Id.ToString() + "' ";
+                using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                {
+                    List<string> ids = new List<string>();
+                    List<string> names = new List<string>();
+                    while (rdr.Read())
+                    {
+                        ids.Add(rdr.GetString(0));
+                        names.Add(rdr.GetString(1));
+                    }
+
+                    result.DualPointEventIds = JsonConvert.SerializeObject(ids);
+                    result.DualPointEventNames = JsonConvert.SerializeObject(names);
+                }
+            }
+
+            using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
+            {
+                con.Open();
+                var cmd = con.CreateCommand();
+                cmd.CommandText = "select shqdb.ftanodes.EventId, shqdb.ftanodes.NodeName,shqdb.ftanodeeventreports.FTAProjectId from shqdb.ftanodeeventreports " +
+                                    "inner join shqdb.ftanodes on shqdb.ftanodeeventreports.FTAProjectId = shqdb.ftanodes.FTAProjectId and shqdb.ftanodeeventreports.FTANodeId = shqdb.ftanodes.id " +
+                                    "where FTAEventTypeId = 3 and shqdb.ftanodeeventreports.FTAProjectId = '" + docs.Id.ToString() + "' ";
+                using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                {
+                    List<string> ids = new List<string>();
+                    List<string> names = new List<string>();
+                    while (rdr.Read())
+                    {
+                        ids.Add(rdr.GetString(0));
+                        names.Add(rdr.GetString(1));
+                    }
+
+                    result.SafeEventIds = JsonConvert.SerializeObject(ids);
+                    result.SafeEventNames = JsonConvert.SerializeObject(names);
+                }
+            }
 
             return Ok(result);
         }
@@ -602,25 +716,35 @@ namespace Dxc.Shq.WebApi.Controllers
 
         private string RunPythonAnalysis(Guid ftaProjectId)
         {
-            ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = ConfigurationManager.AppSettings["PythonExe"];
-            start.Arguments = string.Format("\"{0}\" --C={1}", ConfigurationManager.AppSettings["PythonScripts"], ftaProjectId.ToString());
-            start.UseShellExecute = false;
-            start.RedirectStandardOutput = true;
-            using (Process process = Process.Start(start))
+            var p = new Process();
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardOutput = true;
+            string eOut = null;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.Arguments = string.Format("\"{0}\" --C={1}", ConfigurationManager.AppSettings["PythonScripts"], ftaProjectId.ToString());
+            p.ErrorDataReceived += new DataReceivedEventHandler((sender, e) =>
+            { eOut += e.Data; });
+            p.StartInfo.FileName = ConfigurationManager.AppSettings["PythonExe"];
+            p.Start();
+
+            // To avoid deadlocks, use an asynchronous read operation on at least one of the streams.  
+            p.BeginErrorReadLine();
+            StringBuilder sb = new StringBuilder();
+            while (!p.StandardOutput.EndOfStream)
             {
-                using (StreamReader reader = process.StandardOutput)
-                {
-                    string result = reader.ReadToEnd();
-                    if (result.Contains("the program is completed"))
-                    {
-                        return null;
-                    }
-                    else
-                    {
-                        return result;
-                    }
-                }
+                sb.Append(p.StandardOutput.ReadLine());
+            }
+
+            p.WaitForExit();
+
+            string result = sb.ToString();
+            if (result.Contains("the program is completed"))
+            {
+                return null;
+            }
+            else
+            {
+                return result;
             }
         }
 
