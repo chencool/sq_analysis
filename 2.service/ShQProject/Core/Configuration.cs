@@ -91,7 +91,7 @@ namespace Dxc.Shq.WebApi.Core
                 //CreateUser(context, "e01", "e01@saicmotor.com", "123456", userRoleId, shqUser);
                 //CreateUser(context, "e02", "e02@saicmotor.com", "123456", userRoleId, shqUser);
                 //CreateUser(context, "e03", "e03@saicmotor.com", "123456", userRoleId, shqUser);
-                CreateUser(context, "testuser01", "testuser01@saicmotor.com", "123456", userRoleId, shqUser);
+                CreateUser(context, "testuser01@saicmotor.com", "testuser01@saicmotor.com", "123456", userRoleId, shqUser);
             }
 
             context.SaveChanges();

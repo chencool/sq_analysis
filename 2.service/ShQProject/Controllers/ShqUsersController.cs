@@ -29,7 +29,7 @@ namespace Dxc.Shq.WebApi.Controllers
         {
             var list = db.ShqUsers.ToList();
             List<ShqUserRespondViewModel> toList = new List<ShqUserRespondViewModel>();
-            foreach(var item in list)
+            foreach (var item in list)
             {
                 toList.Add(new ShqUserRespondViewModel(item, db));
             }
@@ -42,7 +42,7 @@ namespace Dxc.Shq.WebApi.Controllers
         [ResponseType(typeof(ShqUserRespondViewModel))]
         public async Task<IHttpActionResult> GetShqUserByStatus(int status)
         {
-            ShqUser shqUser = await db.ShqUsers.Where(item => item.Status == status).FirstOrDefaultAsync();
+            ShqUser shqUser = await db.ShqUsers.Where(item => item.Status == status).Include("IdentityUser").FirstOrDefaultAsync();
             if (shqUser == null)
             {
                 return NotFound();
@@ -57,13 +57,13 @@ namespace Dxc.Shq.WebApi.Controllers
         [ResponseType(typeof(ShqUserRespondViewModel))]
         public async Task<IHttpActionResult> GetShqUserByEmail(string email)
         {
-            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.Email == email).FirstOrDefaultAsync();
+            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.Email == email).Include("IdentityUser").FirstOrDefaultAsync();
             if (shqUser == null)
             {
                 return NotFound();
             }
 
-            return Ok(new ShqUserRespondViewModel(shqUser,db));
+            return Ok(new ShqUserRespondViewModel(shqUser, db));
         }
 
         [Authorize(Roles = ShqConstants.AdministratorRole)]
@@ -77,23 +77,23 @@ namespace Dxc.Shq.WebApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if(string.IsNullOrEmpty(shqUserView.Password) == true)
+            if (string.IsNullOrEmpty(shqUserView.Password) == true)
             {
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.PreconditionFailed, "Password is invalide"));
             }
 
-            if (shqUserView.Roles==null || shqUserView.Roles.Count <1)
+            if (shqUserView.Roles == null || shqUserView.Roles.Count < 1)
             {
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.PreconditionFailed, "User role not specified"));
             }
 
-            if (db.Users.Where(u=>u.UserName.ToLower()== shqUserView.EmailAddress.ToLower()).FirstOrDefault()!= null)
+            if (db.Users.Where(u => u.UserName.ToLower() == shqUserView.EmailAddress.ToLower()).FirstOrDefault() != null)
             {
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.PreconditionFailed, "Name is duiplicated"));
             }
 
             var user = db.Users.Add(new IdentityUser(shqUserView.EmailAddress) { Email = shqUserView.EmailAddress, EmailConfirmed = true });
-            foreach(var role in shqUserView.Roles)
+            foreach (var role in shqUserView.Roles)
             {
                 string roleid = db.Roles.First(c => c.Name == role).Id;
                 user.Roles.Add(new IdentityUserRole { RoleId = roleid });
@@ -107,7 +107,7 @@ namespace Dxc.Shq.WebApi.Controllers
             db.ShqUsers.Add(shqUser);
 
             var store = new ShqUserStore();
-            await  store.SetPasswordHashAsync(user, new ShqUserManager().PasswordHasher.HashPassword(shqUserView.Password));
+            await store.SetPasswordHashAsync(user, new ShqUserManager().PasswordHasher.HashPassword(shqUserView.Password));
 
             try
             {
@@ -136,13 +136,13 @@ namespace Dxc.Shq.WebApi.Controllers
             if (!ModelState.IsValid)
                 return BadRequest("Not a valid model");
 
-            if (HttpContext.Current.User.Identity.Name!= shqUserView.EmailAddress
-                && HttpContext.Current.User.IsInRole(ShqConstants.AdministratorRole)==false)
+            if (HttpContext.Current.User.Identity.Name != shqUserView.EmailAddress
+                && HttpContext.Current.User.IsInRole(ShqConstants.AdministratorRole) == false)
             {
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
             }
 
-            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.UserName == shqUserView.EmailAddress).FirstOrDefaultAsync();
+            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.Email == shqUserView.EmailAddress).Include("IdentityUser").FirstOrDefaultAsync();
             if (shqUser == null)
             {
                 return NotFound();
@@ -159,7 +159,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 shqUser.JobLevel = shqUserView.JobLevel;
                 shqUser.Department = shqUserView.Department;
                 shqUser.IdentityUser.Email = shqUserView.EmailAddress;
-                shqUser.IdentityUser.PhoneNumber= shqUserView.PhoneNumber;
+                shqUser.IdentityUser.PhoneNumber = shqUserView.PhoneNumber;
 
                 shqUser.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == System.Web.HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
                 shqUser.LastModfiedTime = DateTime.Now;
@@ -186,7 +186,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
             }
 
-            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.UserName == password.EmailAddress).FirstOrDefaultAsync();
+            ShqUser shqUser = await db.ShqUsers.Where(item => item.IdentityUser.Email == password.EmailAddress).Include("IdentityUser").FirstOrDefaultAsync();
             if (shqUser == null)
             {
                 return NotFound();
@@ -195,15 +195,15 @@ namespace Dxc.Shq.WebApi.Controllers
             {
                 var userManager = new ShqUserManager();
                 IdentityResult result = null;
-                if (HttpContext.Current.User.IsInRole(ShqConstants.AdministratorRole) ==false)
+                if (HttpContext.Current.User.IsInRole(ShqConstants.AdministratorRole) == false)
                 {
-                     result = await userManager.ChangePasswordAsync(shqUser.IdentityUser.Id, password.OldPassword, password.NewPassword);
-                    
+                    result = await userManager.ChangePasswordAsync(shqUser.IdentityUser.Id, password.OldPassword, password.NewPassword);
+
                 }
                 else
                 {
                     await userManager.RemovePasswordAsync(shqUser.IdentityUser.Id);
-                    result = await userManager.AddPasswordAsync(shqUser.IdentityUser.Id,  password.NewPassword);
+                    result = await userManager.AddPasswordAsync(shqUser.IdentityUser.Id, password.NewPassword);
                 }
 
                 if (result.Succeeded == true)
@@ -243,9 +243,6 @@ namespace Dxc.Shq.WebApi.Controllers
 
             return Ok(new ShqUserRespondViewModel(shqUser, db));
         }
-
-        
-
 
         protected override void Dispose(bool disposing)
         {
