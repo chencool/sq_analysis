@@ -93,9 +93,9 @@ namespace Dxc.Shq.WebApi.Controllers
             pro.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
             pro.LastModfiedTime = DateTime.Now;
 
+            pro.ProjectsAccess.RemoveAll(item => item.ProjectId == pro.Id);
             if (project.UsersPrivileges.Count > 0)
             {
-                pro.ProjectsAccess.RemoveAll(item => item.ProjectId == pro.Id);
                 foreach (var item in project.UsersPrivileges)
                 {
                     var newAccess = new ProjectShqUsers()
