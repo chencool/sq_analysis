@@ -126,7 +126,7 @@ namespace Dxc.Shq.WebApi.Controllers
             {
                 FTATree ftaTree = new FTATree() { Id = tree.Id, FTAProjectId = docs.Id, AnalysisStatus = 1, FTAProject = docs, Content = tree.Content, CreatedById = shqUser.IdentityUserId, CreatedTime = DateTime.Now, LastModifiedById = shqUser.IdentityUserId, LastModfiedTime = DateTime.Now };
                 docs.FTATrees.Add(ftaTree);
-                await db.SaveChangesAsync();
+                db.SaveChanges();
 
                 var jsonFTATree = JsonConvert.DeserializeObject<JsonFTATree>(tree.Content);
                 Analyze(docs, jsonFTATree);
@@ -434,7 +434,7 @@ namespace Dxc.Shq.WebApi.Controllers
                         names.Add(rdr.GetString(1));
                     }
 
-                    result.BaseEventIds= JsonConvert.SerializeObject(ids);
+                    result.BaseEventIds = JsonConvert.SerializeObject(ids);
                     result.BaseEventNames = JsonConvert.SerializeObject(names);
                 }
             }
@@ -657,6 +657,12 @@ namespace Dxc.Shq.WebApi.Controllers
 
             if (resultDocs.FTANodes.Count > 0)
             {
+                var roots = resultDocs.FTANodes.Where(item => item.ParentId == -1 && item.FTANodeTypeId == 1);
+                if (roots != null && roots.Count() > 1)
+                {
+                    throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, "根节点有多个"));
+                }
+
                 foreach (var node in resultDocs.FTANodes)
                 {
                     switch (node.FTANodeTypeId)
@@ -668,6 +674,11 @@ namespace Dxc.Shq.WebApi.Controllers
                             }
                             break;
                         case 2:
+                            if (resultDocs.FTANodes.FirstOrDefault(item => item.Id == node.ParentId) == null)
+                            {
+                                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, "中间节点没有父节点"));
+                            }
+
                             if (resultDocs.FTANodes.FirstOrDefault(item => item.ParentId == node.Id) == null)
                             {
                                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotAcceptable, "中间节点没有子节点"));
@@ -731,7 +742,8 @@ namespace Dxc.Shq.WebApi.Controllers
                 using (AutoResetEvent outputWaitHandle = new AutoResetEvent(false))
                 using (AutoResetEvent errorWaitHandle = new AutoResetEvent(false))
                 {
-                    process.OutputDataReceived += (sender, e) => {
+                    process.OutputDataReceived += (sender, e) =>
+                    {
                         if (e.Data == null)
                         {
                             outputWaitHandle.Set();

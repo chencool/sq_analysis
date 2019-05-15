@@ -131,7 +131,13 @@ namespace Dxc.Shq.WebApi.Controllers
             Project pro = await db.Projects.FindAsync(projectView.Id);
             if (pro != null)
             {
-                return Conflict();
+                return Ok("已存在");
+            }
+
+            pro = await db.Projects.FirstOrDefaultAsync(item=>item.ProjectName == projectView.Name);
+            if (pro != null)
+            {
+                return Ok("已存在");
             }
 
             Project project = projectView.ToProject();

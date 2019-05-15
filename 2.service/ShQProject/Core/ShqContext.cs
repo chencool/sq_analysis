@@ -9,7 +9,7 @@
         public ShqContext()
             : base("ShqContext")
         {
-            
+
         }
 
         public DbSet<Project> Projects { get; set; }
@@ -42,5 +42,11 @@
 
         public DbSet<FTAAnalysisResultById> FTAAnalysisResultByIds { get; set; }
         public DbSet<FTAAnalysisResultByName> FTAAnalysisResultByNames { get; set; }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Project>().HasIndex(p => new { p.ProjectName }).IsUnique(true);
+        }
     }
 }

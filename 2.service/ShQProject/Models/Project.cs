@@ -10,6 +10,7 @@
         public Guid Id { get; set; }
 
         [Required]
+        [StringLength(255)]
         public string ProjectName { get; set; }
         public string Description { get; set; }
 
