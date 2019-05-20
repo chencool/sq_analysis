@@ -230,7 +230,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 return NotFound();
             }
 
-            if (ProjectHelper.HasUpdateAccess(docs.Project) == false)
+            if (ProjectHelper.HasReadAccess(docs.Project) == false)
             {
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
             }
@@ -238,30 +238,50 @@ namespace Dxc.Shq.WebApi.Controllers
             FTATreeReportViewModel result = new FTATreeReportViewModel();
 
             var resultNodes = db.FTAAnalysisResultByNames.Where(r => r.FTAProjectId == docs.Id).ToList();
-            Dictionary<int, List<string>> dic = new Dictionary<int, List<string>>();
 
+            Dictionary<int, List<string>> dicNames = new Dictionary<int, List<string>>();
+            Dictionary<int, List<string>> dicIds = new Dictionary<int, List<string>>();
             if (resultNodes != null)
             {
-                result.MinimalCutSetNames = JsonConvert.SerializeObject(resultNodes.Select(item => item.FTANodeName).ToList());
-
                 foreach (var nodeName in resultNodes)
                 {
-                    if (dic.ContainsKey(nodeName.BranchId) == false)
+                    if (dicNames.ContainsKey(nodeName.BranchId) == false)
                     {
-                        dic.Add(nodeName.BranchId, new List<string>());
+                        dicNames.Add(nodeName.BranchId, new List<string>());
+                    }
+                    dicNames[nodeName.BranchId].Add(nodeName.FTANodeName);
+
+                    if (dicIds.ContainsKey(nodeName.BranchId) == false)
+                    {
+                        dicIds.Add(nodeName.BranchId, new List<string>());
                     }
 
                     var nds = db.FTANodes.Where(item => item.NodeName == nodeName.FTANodeName).Select(r => r.EventId).ToList();
-
-                    dic[nodeName.BranchId].AddRange(nds);
+                    dicIds[nodeName.BranchId].AddRange(nds);
                 }
             }
 
-
-
-            if (dic.Values != null)
+            if (dicNames.Values != null)
             {
-                result.MinimalCutSetIds = JsonConvert.SerializeObject(dic.Values);
+                StringBuilder sb = new StringBuilder();
+                foreach (var key in dicNames.Keys)
+                {
+                    sb.Append(JsonConvert.SerializeObject(dicNames[key]));
+                }
+
+                result.MinimalCutSetNames = sb.ToString();
+            }
+
+
+            if (dicIds.Values != null)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach(var key in dicIds.Keys)
+                {
+                    sb.Append(JsonConvert.SerializeObject(dicIds[key]));
+                }
+
+                result.MinimalCutSetIds = sb.ToString();
             }
 
             using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
@@ -544,6 +564,7 @@ namespace Dxc.Shq.WebApi.Controllers
             int gateId = 1;
             try
             {
+                Dictionary<string, FTANodeGate> gateList = new Dictionary<string, FTANodeGate>();
                 List<JsonFTANode> FTANodesList = tree.FTANodes.FindAll(item => "square,rectangle,round".Contains(item.ItemType) == true);
                 while (i <= FTANodesList.Count)
                 {
@@ -613,25 +634,37 @@ namespace Dxc.Shq.WebApi.Controllers
                         var parentNode = tree.FTANodes.FirstOrDefault(item => item.Id == edge.Source);
                         if ("orgate,andgate,nongate".Contains(parentNode.ItemType.ToLower()))
                         {
-                            FTANodeGate gate = new FTANodeGate(); //to do
-                            gate.Id = gateId;
-                            gate.NodeGateName = parentNode.Name;
-                            gate.FTAProjectId = docs.Id;
-                            gate.FTAProject = docs;
-                            switch (parentNode.ItemType.ToLower())
+                            FTANodeGate gate = null;
+                            if (gateList.ContainsKey(edge.Source) ==false)
                             {
-                                case "orgate":
-                                    gate.FTANodeGateType = db.FTANodeGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANodeGateTypeOr);
-                                    break;
-                                case "andgate":
-                                    gate.FTANodeGateType = db.FTANodeGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANodeGateTypeAnd);
-                                    break;
-                                case "nongate":
-                                    gate.FTANodeGateType = db.FTANodeGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANodeGateTypeXor);
-                                    break;
+                                gate = new FTANodeGate(); //to do
+                                gate.Id = gateId;
+                                gate.NodeGateName = parentNode.Name;
+                                gate.FTAProjectId = docs.Id;
+                                gate.FTAProject = docs;
+                                switch (parentNode.ItemType.ToLower())
+                                {
+                                    case "orgate":
+                                        gate.FTANodeGateType = db.FTANodeGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANodeGateTypeOr);
+                                        break;
+                                    case "andgate":
+                                        gate.FTANodeGateType = db.FTANodeGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANodeGateTypeAnd);
+                                        break;
+                                    case "nongate":
+                                        gate.FTANodeGateType = db.FTANodeGateTypes.FirstOrDefault(item => item.Id == ShqConstants.FTANodeGateTypeXor);
+                                        break;
+                                }
+                                gate.FTANodeGateTypeId = gate.FTANodeGateType.Id;
+                                gateId++;
+                                gateList.Add(parentNode.Id, gate);
+
+                                resultDocs.FTANodeGates.Add(gate);
                             }
-                            gate.FTANodeGateTypeId = gate.FTANodeGateType.Id;
-                            gateId++;
+                            else
+                            {
+                                gate = gateList[edge.Source];
+                            }
+                            
                             fn.FTANodeGateId = gate.Id;
 
                             var parentEdge = tree.FTAEdges.FirstOrDefault(item => item.Target == edge.Source);
@@ -644,8 +677,6 @@ namespace Dxc.Shq.WebApi.Controllers
                                     fn.ParentId = FTANodesList.IndexOf(grandParentNode) + 1;
                                 }
                             }
-
-                            resultDocs.FTANodeGates.Add(gate);
                         }
                     }
                 }
