@@ -53,6 +53,7 @@
         public double X { get; set; }
         public double Y { get; set; }
 
+        [Column("SmallFailureRateQ")]
         public double SmallFailureRateQ { get; set; }
         public bool QValueIsModifiedByUser { get; set; } // true : user input; false: compute
 

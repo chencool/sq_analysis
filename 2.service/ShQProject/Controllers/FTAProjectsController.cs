@@ -20,6 +20,7 @@ using Dxc.Shq.WebApi.Models;
 using Dxc.Shq.WebApi.ViewModels;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Dxc.Shq.WebApi.Controllers
 {
@@ -129,6 +130,8 @@ namespace Dxc.Shq.WebApi.Controllers
                 db.SaveChanges();
 
                 var jsonFTATree = JsonConvert.DeserializeObject<JsonFTATree>(tree.Content);
+                dynamic jsonSource = JObject.Parse(tree.Content);
+
                 Analyze(docs, jsonFTATree);
                 var result = new FTATreeViewModel(ftaTree, db);
 
@@ -137,24 +140,45 @@ namespace Dxc.Shq.WebApi.Controllers
                 {
                     result.AnalysisStatus = "Ok";
 
-                    foreach (var jsNode in jsonFTATree.FTANodes)
+                    foreach (var jsNode in jsonSource.nodes)
                     {
-                        var node = db.FTANodes.FirstOrDefault(item => item.FTAProjectId == docs.Id && item.EventId == jsNode.Id);
-                        if (node != null)
+                        string jsNodeId = jsNode.id;
+                        using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
                         {
-                            jsNode.SmallFailureRateQ = node.SmallFailureRateQ;
+                            con.Open();
+                            var cmd = con.CreateCommand();
+
+
+                            //var node = db.FTANodes.FirstOrDefault(item => item.FTAProjectId == docs.Id && item.EventId == jsNodeId);
+                            //if (node != null)
+                            //{
+                            //    jsNode.smallFailureRateQ = node.SmallFailureRateQ;
+                            //}
+
+                            cmd.CommandText = string.Format("select SmallFailureRateQ from shqdb.ftanodes where FTAProjectId = '{0}' and EventId = '{1}' limit 1;", docs.Id, jsNodeId);
+                            using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
+                            {
+                                while (rdr.Read())
+                                {
+                                    jsNode.smallFailureRateQ = rdr.GetDouble(0);
+                                }
+                            }
                         }
                     }
 
-                    foreach (var jsProperty in jsonFTATree.FTAProperties)
+                    foreach (var jsProperty in jsonSource.attributes)
                     {
-                        var node = db.FTANodeProperties.FirstOrDefault(item => item.FTAProjectId == docs.Id && item.Name == jsProperty.Name);
+                        string jName = jsProperty.name;
+                        var node = db.FTANodeProperties.FirstOrDefault(item => item.FTAProjectId == docs.Id && item.Name == jName);
                         if (node != null)
                         {
-                            jsProperty.InvalidRate = node.InvalidRate;
+                            jsProperty.invalidRate = node.InvalidRate;
                         }
                     }
-                    result.Content = JsonConvert.SerializeObject(jsonFTATree);
+
+                    result.Content = JsonConvert.SerializeObject(jsonSource);
+                    ftaTree.Content = result.Content;
+                    db.SaveChanges();
 
                     //// remove C:\Users\phimath\Source\Repos\sq_analysis\2.service\packages\MySqlConnector.0.47.1\lib\net45\MySqlConnector.dll
                     //using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
@@ -276,7 +300,7 @@ namespace Dxc.Shq.WebApi.Controllers
             if (dicIds.Values != null)
             {
                 StringBuilder sb = new StringBuilder();
-                foreach(var key in dicIds.Keys)
+                foreach (var key in dicIds.Keys)
                 {
                     sb.Append(JsonConvert.SerializeObject(dicIds[key]));
                 }
@@ -318,11 +342,11 @@ namespace Dxc.Shq.WebApi.Controllers
                         FTATreeReportP1RowViewModel row = new FTATreeReportP1RowViewModel();
                         row.NodeId = rdr.GetString(0);
                         row.EventName = rdr.GetString(1);
-                        row.SinglePointEvent = rdr.GetDouble(2);
-                        row.DualPointEvent = rdr.GetDouble(3);
-                        row.SafeEvent = rdr.GetDouble(4);
-                        row.NodeFailureProbability = rdr.GetDouble(5);
-                        row.TopEvent = rdr.GetDouble(6);
+                        row.singlePointFault = rdr.GetDouble(2);
+                        row.residualFaults = rdr.GetDouble(3);
+                        row.latentFault = rdr.GetDouble(4);
+                        row.detectedDualPointFault = rdr.GetDouble(5);
+                        row.safeFault = rdr.GetDouble(6);
                         row.NodeName = rdr.GetString(7);
                         result.TableP1.Add(row);
                     }
@@ -619,7 +643,6 @@ namespace Dxc.Shq.WebApi.Controllers
                         fp.FailureTime = property.FailureTime;
                         fp.InvalidRate = property.InvalidRate;
                         fp.InvalidRateValueIsModifiedByUser = property.InvalidRateValueIsModifiedByUser;
-                        fp.ReferenceFailureRateq = property.ReferenceFailureRateq;
 
                         fn.FTANodePropertiesId = fp.Id;
                         fn.FTANodeProperties = fp;
@@ -635,7 +658,7 @@ namespace Dxc.Shq.WebApi.Controllers
                         if ("orgate,andgate,nongate".Contains(parentNode.ItemType.ToLower()))
                         {
                             FTANodeGate gate = null;
-                            if (gateList.ContainsKey(edge.Source) ==false)
+                            if (gateList.ContainsKey(edge.Source) == false)
                             {
                                 gate = new FTANodeGate(); //to do
                                 gate.Id = gateId;
@@ -664,7 +687,7 @@ namespace Dxc.Shq.WebApi.Controllers
                             {
                                 gate = gateList[edge.Source];
                             }
-                            
+
                             fn.FTANodeGateId = gate.Id;
 
                             var parentEdge = tree.FTAEdges.FirstOrDefault(item => item.Target == edge.Source);

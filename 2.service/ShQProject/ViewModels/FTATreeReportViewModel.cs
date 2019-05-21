@@ -13,11 +13,11 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         public string EventName { get; set; }
 
-        public double SinglePointEvent { get; set; }
-        public double DualPointEvent { get; set; }
-        public double SafeEvent { get; set; }
-        public double NodeFailureProbability { get; set; }
-        public double TopEvent { get; set; }
+        public double singlePointFault { get; set; }
+        public double residualFaults { get; set; }
+        public double latentFault { get; set; }
+        public double detectedDualPointFault { get; set; }
+        public double safeFault { get; set; }
     }
 
     public class FTATreeReportP2RowViewModel

@@ -44,9 +44,9 @@ namespace Dxc.Shq.WebApi.Models
         /// </summary>
         public double DClf { get; set; }
 
-        /// <summary>
-        /// 参考失效率 q
-        /// </summary>
-        public double ReferenceFailureRateq { get; set; }
+        ///// <summary>
+        ///// 参考失效率 q
+        ///// </summary>
+        //public double ReferenceFailureRateq { get; set; }
     }
 }
