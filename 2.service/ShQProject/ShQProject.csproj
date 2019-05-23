@@ -119,10 +119,6 @@
     <Compile Include="Models\FTANode.cs" />
     <Compile Include="Models\FMEATree.cs" />
     <Compile Include="Models\FTATree.cs" />
-    <Compile Include="Models\ProjectFile.cs" />
-    <Compile Include="Models\ProjectFileTemplate.cs" />
-    <Compile Include="Models\ProjectFolderTemplate.cs" />
-    <Compile Include="Models\ProjectFolder.cs" />
     <Compile Include="Models\ProjectShqUsers.cs" />
     <Compile Include="Models\ShqUser.cs" />
     <Compile Include="Models\Project.cs" />

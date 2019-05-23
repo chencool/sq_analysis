@@ -17,7 +17,7 @@ namespace Dxc.Shq.WebApi.Models
 
         public Project Project { get; set; }
 
-        public virtual List<ProjectFolder> ProjectFolders { get; set; } = new List<ProjectFolder>();
+        //public virtual List<ProjectFolder> ProjectFolders { get; set; } = new List<ProjectFolder>();
 
         public virtual List<FTAProject> FTAProjects { get; set; } = new List<FTAProject>();
     }
