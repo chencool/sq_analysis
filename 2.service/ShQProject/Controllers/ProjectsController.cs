@@ -157,6 +157,11 @@ namespace Dxc.Shq.WebApi.Controllers
                 db.FMEAProjects.Add(new FMEAProject() { Id = Guid.NewGuid(), ProjectId = projectView.Id, CreatedById = project.CreatedById, LastModifiedById = project.LastModifiedById });
             }
 
+            if (project.Type == "WorkProject")
+            {
+                db.WorkProjects.Add(new WorkProject() { Id = Guid.NewGuid(), ProjectId = projectView.Id, CreatedById = project.CreatedById, LastModifiedById = project.LastModifiedById ,WorkProjectTemplateId= projectView.WorkProjectTemplateId});
+            }
+
             int i = 0;
             if (projectView.UsersPrivileges.Count > 0)
             {

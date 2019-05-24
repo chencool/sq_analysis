@@ -5,6 +5,7 @@
     using System.Web;
     using System.Web.Http;
     using System.Web.Mvc;
+    using System.Web.Routing;
     using Core;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
@@ -26,6 +27,8 @@
             var settings = jsonFormatter.SerializerSettings;
             settings.Formatting = Formatting.Indented;
             settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
         }
     }
 }

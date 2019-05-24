@@ -56,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\FilterConfig.cs" />
+    <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.OAuth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Areas\HelpPage\ApiDescriptionExtensions.cs" />
@@ -86,12 +87,17 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
+    <Compile Include="Controllers\FileController.cs" />
     <Compile Include="Controllers\FMEAProjectsController.cs" />
     <Compile Include="Controllers\FTAProjectsController.cs" />
     <Compile Include="Controllers\ProjectsController.cs" />
     <Compile Include="Controllers\ShqUsersController.cs" />
+    <Compile Include="Controllers\ProjectFilesController.cs" />
+    <Compile Include="Controllers\WorkProjectsController.cs" />
+    <Compile Include="Controllers\WorkProjectTemplatesController.cs" />
     <Compile Include="Core\Constants.cs" />
     <Compile Include="Core\JsonFTATree.cs" />
+    <Compile Include="ViewModels\ProjectFolderViewModel.cs" />
     <Compile Include="Core\ProjectHelper.cs" />
     <Compile Include="Core\ShqContext.cs" />
     <Compile Include="Core\ShqUserManager.cs" />
@@ -123,8 +129,10 @@
     <Compile Include="Models\ShqUser.cs" />
     <Compile Include="Models\Project.cs" />
     <Compile Include="Models\WorkProject.cs" />
+    <Compile Include="Models\WorkProjectTemplate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="ViewModels\ProjectFileViewModel.cs" />
     <Compile Include="ViewModels\FTATreeReportViewModel.cs" />
     <Compile Include="ViewModels\FTATreeViewModel.cs" />
     <Compile Include="ViewModels\ProjectShqUsersViewModel.cs" />
@@ -302,6 +310,12 @@
     <Reference Include="Thinktecture.IdentityModel.Core, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Thinktecture.IdentityModel.Core.1.4.0\lib\net45\Thinktecture.IdentityModel.Core.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\elFinder.Net\elFinder.Net.csproj">
+      <Project>{ee8da138-7eda-4eb5-b3fd-377763d5eaae}</Project>
+      <Name>elFinder.Net</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

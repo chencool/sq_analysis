@@ -18,6 +18,8 @@
 
         public DbSet<FMEAProject> FMEAProjects { get; set; }
 
+        public DbSet<WorkProject> WorkProjects { get; set; }
+
         public DbSet<ShqUser> ShqUsers { get; set; }
 
         public DbSet<ProjectShqUsers> ProjectShqUsers { get; set; }
@@ -47,6 +49,10 @@
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Project>().HasIndex(p => new { p.ProjectName }).IsUnique(true);
+
+            modelBuilder.Entity<WorkProjectTemplate>().HasIndex(w => new { w.Name }).IsUnique(true);
         }
+
+        public DbSet<WorkProjectTemplate> WorkProjectTemplates { get; set; }
     }
 }
