@@ -25,9 +25,9 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         public ProjectFileViewModel(string path, int folderType)
         {
-            this.Name = System.IO.Path.GetFileName(path);
+            this.Name = ProjectFileViewModel.GetExc(System.IO.Path.GetFileName(path), 4);
             this.Path = path;
-            this.Level = 0;// todo from name
+            this.Level = int.Parse(ProjectFileViewModel.GetExc(System.IO.Path.GetFileName(path), 1));
 
             string rpath;
             if (folderType == 0)
@@ -38,7 +38,7 @@ namespace Dxc.Shq.WebApi.ViewModels
             {
                 rpath = System.IO.Path.Combine(ShqConstants.ProjectRootFolder, path);
             }
-           
+
 
             FileInfo fi = new FileInfo(rpath);
             this.Size = fi.Length;
@@ -51,5 +51,36 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         public ShqUserRequestViewModel LastModifiedBy { get; set; }
         public string LastModfiedTime { get; set; }
+
+        private static string GetExc(string name, int index)
+        {
+            string ext = System.IO.Path.GetExtension(name);
+
+            if (index == 1)
+            {
+                return ext.Replace(".", "");
+            }
+
+            string temp = System.IO.Path.GetFileNameWithoutExtension(name);
+            if (index == 2)
+            {
+
+                return GetExc(temp, 1); ;
+            }
+
+            temp = System.IO.Path.GetFileNameWithoutExtension(temp);
+            if (index == 3)
+            {
+                return GetExc(temp, 1); ;
+            }
+
+            temp = System.IO.Path.GetFileNameWithoutExtension(temp);
+            if (index == 4)
+            {
+                return temp;
+            }
+
+            return ShqConstants.DefaultFileLevel.ToString();
+        }
     }
 }

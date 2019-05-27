@@ -22,18 +22,18 @@ namespace Dxc.Shq.WebApi.Controllers
         private ShqContext db = new ShqContext();
 
 
-        // GET: api/ProjectFiles
+        /// <summary>
+        /// get files
+        /// </summary>
+        /// <param name="path">the path to seach, empty or null mean root</param>
+        /// <param name="folderType">0 for template files, 1 for project files</param>
+        /// <param name="searchOption">0 for sub folder, 1 for all children folders</param>
+        /// <returns></returns>
         [Route("api/ProjectFiles")]
-        public ProjectFolderViewModel GetProjectFolder(string path, int folderType)
+        public ProjectFolderViewModel GetProjectFiles(string path, int folderType, SearchOption searchOption)
         {
-            if(path == "root")
-            {
-                return new ProjectFolderViewModel("", folderType);
-            }
-            else
-            {
-                return new ProjectFolderViewModel(path, folderType);
-            }
+
+            return new ProjectFolderViewModel(path == null ? "" : path, folderType, searchOption);
         }
 
         // GET: api/WorkProjects/5

@@ -13,8 +13,6 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         public string Path { get; set; }
 
-        public int Level { get; set; }
-
         /// <summary>
         /// 0 template
         /// 1 project
@@ -26,7 +24,7 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         }
 
-        public ProjectFolderViewModel(string path, int folderType)
+        public ProjectFolderViewModel(string path, int folderType, SearchOption searchOption)
         {
             string[] directory, files;
             if (folderType == 0)
@@ -42,14 +40,22 @@ namespace Dxc.Shq.WebApi.ViewModels
 
             this.Path = path;
             this.Name = System.IO.Path.GetFileName(path);
-            this.Level = 0;//todo
             this.FolderType = folderType;
 
             if (directory != null && directory.Length > 0)
             {
                 foreach (var d in directory)
                 {
-                    this.SubFolders.Add(new ProjectFolderViewModel(System.IO.Path.Combine(path, System.IO.Path.GetFileName(d)), folderType));
+                    if (searchOption == SearchOption.AllDirectories)
+                    {
+                        this.SubFolders.Add(new ProjectFolderViewModel(System.IO.Path.Combine(path, System.IO.Path.GetFileName(d)), folderType, searchOption));
+                    }
+                    else
+                    {
+                        this.SubFolders.Add(new ProjectFolderViewModel { Path = System.IO.Path.Combine(path, System.IO.Path.GetFileName(d)),
+                        Name = System.IO.Path.GetFileName(d),
+                        FolderType=folderType});
+                    }
                 }
             }
 
