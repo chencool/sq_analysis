@@ -1,0 +1,140 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page - My ASP.NET Application</title>
+    <link href="http://40.121.23.71/fileman/Content/bootstrap.css" rel="stylesheet"/>
+<link href="http://40.121.23.71/fileman/Content/site.css" rel="stylesheet"/>
+
+    <script src="http://40.121.23.71/fileman/Scripts/modernizr-2.6.2.js"></script>
+
+    
+    <!-- CSS Links  -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.1/themes/base/jquery-ui.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.1/themes/base/jquery.ui.base.min.css" />
+    
+    <!-- Javascripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js"></script>
+
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="http://40.121.23.71/test/fileman.html">File Manager</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="http://40.121.23.71/test/fileman.html">Home</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+<div class="container body-content">
+    
+
+<br />
+<div class="row">
+    <div class="col-md-12">
+        <!-- Call the view of the file manager -->
+        
+<link href="http://40.121.23.71/fileman/Content/elfinder/css/elfinder.full.css" rel="stylesheet" />
+<script src="http://40.121.23.71/fileman/Content/elfinder/js/elfinder.min.js"></script>
+<script type="text/javascript">
+    $(function ()
+    {
+        var myCommands = elFinder.prototype._options.commands;
+
+        var disabled = ['extract', 'archive', 'resize', 'help', 'select']; // Not yet implemented commands in ElFinder.Net
+
+        $.each(disabled, function (i, cmd)
+        {
+            (idx = $.inArray(cmd, myCommands)) !== -1 && myCommands.splice(idx, 1);
+        });
+
+        var selectedFile = null;
+
+        var options = {
+            url: '/connector', // connector route defined in \App_Start\RouteConfig.cs
+            customData: { folder: 'Files', subFolder: '' }, // customData passed in every request to the connector as query strings. These values are used in FileController's Index method.
+            rememberLastDir: false, // Prevent elFinder saving in the Browser LocalStorage the last visited directory
+            commands: myCommands,
+            //lang: 'pt_BR', // elFinder supports UI and messages localization. Check the folder Content\elfinder\js\i18n for all available languages. Be sure to include the corresponding .js file(s) in the JavaScript bundle.
+            uiOptions: { // UI buttons available to the user
+                toolbar: [
+                    ['back', 'forward'],
+                    ['reload'],
+                    ['home', 'up'],
+                    ['mkdir', 'mkfile', 'upload'],
+                    ['open', 'download'],
+                    ['info'],
+                    ['quicklook'],
+                    ['copy', 'cut', 'paste'],
+                    ['rm'],
+                    ['duplicate', 'rename', 'edit'],
+                    ['view', 'sort']
+                ],
+                navbar: {
+                    minWidth: 150,
+                    maxWidth: 500
+                }
+            },
+
+            handlers: {
+                select: function (event, elfinderInstance)
+                {
+
+                    if (event.data.selected.length == 1)
+                    {
+                        var item = $('#' + event.data.selected[0]);
+                        if (!item.hasClass('directory'))
+                        {
+                            selectedFile = event.data.selected[0];
+                            $('#elfinder-selectFile').show();
+                            return;
+                        }
+                    }
+                    $('#elfinder-selectFile').hide();
+                    selectedFile = null;
+                }
+            }
+        };
+        $('#elfinder').elfinder(options).elfinder('instance');
+
+        $('.elfinder-toolbar:first').append('<div class="ui-widget-content ui-corner-all elfinder-buttonset" id="elfinder-selectFile" style="display:none; float:right;">' +
+        '<div class="ui-state-default elfinder-button" title="Select" style="width: 100px;"></div>');
+        $('#elfinder-selectFile').click(function ()
+        {
+            if (selectedFile != null)
+                $.post('file/selectFile', { target: selectedFile }, function (response)
+                {
+                    alert(response);
+                });
+
+        });
+    });
+</script>
+<div id="elfinder"></div>
+
+    </div>
+</div>
+    <hr />
+    <footer>
+        <p>&copy; 2019 - My ASP.NET Application</p>
+    </footer>
+</div>
+    <script src="http://40.121.23.71/fileman/Scripts/bootstrap.js"></script>
+<script src="http://40.121.23.71/fileman/Scripts/respond.js"></script>
+
+    
+</body>
+</html>

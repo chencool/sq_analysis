@@ -481,13 +481,19 @@
             </summary>
             <param name="documentPath">The physical path to XML document.</param>
         </member>
-        <member name="M:Dxc.Shq.WebApi.Controllers.ProjectFilesController.GetProjectFiles(System.String,System.Int32,System.IO.SearchOption)">
+        <member name="M:Dxc.Shq.WebApi.Controllers.ProjectFilesController.GetProjectFiles(System.String,System.IO.SearchOption)">
             <summary>
             get files
             </summary>
-            <param name="path">the path to seach, empty or null mean root</param>
-            <param name="folderType">0 for template files, 1 for project files</param>
+            <param name="path">the path to seach, "templates\.." mean tempalte folder, "projects\{projectid}\..." mean project folders</param>
             <param name="searchOption">0 for sub folder, 1 for all children folders</param>
+            <returns></returns>
+        </member>
+        <member name="M:Dxc.Shq.WebApi.Controllers.ProjectFilesController.Update(System.String)">
+            <summary>
+            explorer ops
+            </summary>
+            <param name="explorerInfo">JSON string by ExplorerInfoViewModel defined</param>
             <returns></returns>
         </member>
         <member name="P:Dxc.Shq.WebApi.Core.JsonFTAProperties.FailureRateQ">
@@ -520,10 +526,9 @@
             参考失效率 q
             </summary>
         </member>
-        <member name="P:Dxc.Shq.WebApi.ViewModels.ProjectFolderViewModel.FolderType">
+        <member name="P:Dxc.Shq.WebApi.Models.ProjectFile.Status">
             <summary>
-            0 template
-            1 project
+            1 means deleted
             </summary>
         </member>
         <member name="P:Dxc.Shq.WebApi.Models.FTANodeEventReport.EventValueType">
@@ -555,6 +560,16 @@
         <member name="P:Dxc.Shq.WebApi.Models.FTANodeProperties.DClf">
             <summary>
             潜伏故障诊断覆盖率
+            </summary>
+        </member>
+        <member name="P:Dxc.Shq.WebApi.ViewModels.ExplorerInfoViewModel.cmd">
+            <summary>
+            "createFolder"
+            "deleteFolder"
+            "uploadFile"
+            "dowloadFile"
+            "deleteFile"
+            "newLevel"
             </summary>
         </member>
     </members>

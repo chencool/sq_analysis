@@ -45,5 +45,12 @@ namespace Dxc.Shq.WebApi.Core
                 return ConfigurationManager.AppSettings["ProjectRootFolder"];
             }
         }
+
+        public static bool IsGuidEnded(string path)
+        {
+            string id = System.IO.Path.GetExtension(path).Replace(".", "");
+            Guid temp = Guid.NewGuid();
+            return Guid.TryParse(id, out temp);
+        }
     }
 }

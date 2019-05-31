@@ -13,21 +13,21 @@ namespace Dxc.Shq.WebApi.Models
         public Guid Id { get; set; }
 
         [Required]
-        public string FileName { get; set; }
+        public string Name { get; set; }
 
         public string Description { get; set; }
 
+        public int Level { get; set; }
+
+        /// <summary>
+        /// 1 means deleted
+        /// </summary>
+        public int Status { get; set; }
+
+        [Required]
+        public bool IsFolder { get; set; }
+
         [Required]
         public string Path { get; set; }
-
-        [ForeignKey("Folder")]
-        public Guid FolderId { get; set; }
-
-        public ProjectFolder Folder { get; set; }
-
-        [ForeignKey("FileTemplate")]
-        public Guid FileTemplateId { get; set; }
-
-        public ProjectFileTemplate FileTemplate { get; set; }
     }
 }

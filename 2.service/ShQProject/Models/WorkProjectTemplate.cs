@@ -6,7 +6,7 @@ using System.Web;
 
 namespace Dxc.Shq.WebApi.Models
 {
-    public class WorkProjectTemplate:DataBase
+    public class WorkProjectTemplate : DataBase
     {
         [Key]
         public Guid Id { get; set; }
@@ -16,5 +16,9 @@ namespace Dxc.Shq.WebApi.Models
         public string Name { get; set; }
 
         public string Description { get; set; }
+
+        public string Path { get; set; }
+
+        public virtual List<ProjectFile> ProjectFiles { get; set; } = new List<ProjectFile>();
     }
 }

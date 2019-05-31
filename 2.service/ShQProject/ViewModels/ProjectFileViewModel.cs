@@ -10,6 +10,7 @@ namespace Dxc.Shq.WebApi.ViewModels
 
     public class ProjectFileViewModel
     {
+        public Guid Id { get; set; }
         public string Name { get; set; }
 
         public string Path { get; set; }
@@ -23,14 +24,13 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         }
 
-        public ProjectFileViewModel(string path, int folderType)
+        public ProjectFileViewModel(string path, bool isTemplated, ShqContext db)
         {
-            this.Name = ProjectFileViewModel.GetExc(System.IO.Path.GetFileName(path), 4);
+            this.Name = System.IO.Path.GetFileName(path);
             this.Path = path;
-            this.Level = int.Parse(ProjectFileViewModel.GetExc(System.IO.Path.GetFileName(path), 1));
 
             string rpath;
-            if (folderType == 0)
+            if (isTemplated == true)
             {
                 rpath = System.IO.Path.Combine(ShqConstants.TemplateRootFolder, path);
             }
@@ -39,11 +39,24 @@ namespace Dxc.Shq.WebApi.ViewModels
                 rpath = System.IO.Path.Combine(ShqConstants.ProjectRootFolder, path);
             }
 
-
             FileInfo fi = new FileInfo(rpath);
             this.Size = fi.Length;
             this.CreatedTime = fi.CreationTime.ToString();
             this.LastModfiedTime = fi.LastWriteTime.ToString();
+
+            if (ShqConstants.IsGuidEnded(path))
+            {
+                this.Name = System.IO.Path.GetFileNameWithoutExtension(this.Name);
+                this.Id = new Guid(System.IO.Path.GetExtension(path).Replace(".", ""));
+
+                CreatedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == db.ProjectFiles.FirstOrDefault(item => item.Id == this.Id).CreatedById).FirstOrDefault(), db);
+                CreatedTime = db.ProjectFiles.FirstOrDefault(item => item.Id == this.Id).CreatedTime.ToString();
+
+                LastModifiedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == db.ProjectFiles.FirstOrDefault(item => item.Id == this.Id).LastModifiedById).FirstOrDefault(), db);
+                LastModfiedTime = db.ProjectFiles.FirstOrDefault(item => item.Id == this.Id).LastModfiedTime.ToString();
+
+                this.Level = db.ProjectFiles.FirstOrDefault(item => item.Id == this.Id).Level;
+            }
         }
 
         public ShqUserRequestViewModel CreatedBy { get; set; }
@@ -51,36 +64,5 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         public ShqUserRequestViewModel LastModifiedBy { get; set; }
         public string LastModfiedTime { get; set; }
-
-        private static string GetExc(string name, int index)
-        {
-            string ext = System.IO.Path.GetExtension(name);
-
-            if (index == 1)
-            {
-                return ext.Replace(".", "");
-            }
-
-            string temp = System.IO.Path.GetFileNameWithoutExtension(name);
-            if (index == 2)
-            {
-
-                return GetExc(temp, 1); ;
-            }
-
-            temp = System.IO.Path.GetFileNameWithoutExtension(temp);
-            if (index == 3)
-            {
-                return GetExc(temp, 1); ;
-            }
-
-            temp = System.IO.Path.GetFileNameWithoutExtension(temp);
-            if (index == 4)
-            {
-                return temp;
-            }
-
-            return ShqConstants.DefaultFileLevel.ToString();
-        }
     }
 }

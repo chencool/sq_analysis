@@ -6,7 +6,7 @@ using System.Web;
 
 namespace ElFinder
 {
-    internal static class Helper
+    public static class Helper
     {
         public static string GetMimeType(FileInfo file)
         {

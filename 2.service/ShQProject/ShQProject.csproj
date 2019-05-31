@@ -98,6 +98,8 @@
     <Compile Include="Controllers\WorkProjectTemplatesController.cs" />
     <Compile Include="Core\Constants.cs" />
     <Compile Include="Core\JsonFTATree.cs" />
+    <Compile Include="Models\ProjectFile.cs" />
+    <Compile Include="ViewModels\ExplorerInfoViewModel.cs" />
     <Compile Include="ViewModels\ProjectFolderViewModel.cs" />
     <Compile Include="Core\ProjectHelper.cs" />
     <Compile Include="Core\ShqContext.cs" />

@@ -1,0 +1,44 @@
+﻿max_allowed_packet=500M
+
+https://github.dxc.com/mhan5
+
+rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov
+
+git fetch origin e58ad07ba677f867ae84610335ac38f286364871
+
+git remote set-url origin ssh://xfeng8@github.dxc.com/mhan5/KONE_POC.git/
+https://github.dxc.com/mhan5/KONE_POC.git/
+git remote set-url origin ssh://xfeng8@github.dxc.com/mhan5/KONE_POC.git/
+
+rtsp://admin:tongli12345@192.168.1.66/h265/ch1/sub/av_stream
+
+
+rtsp://admin:Kone123321@192.168.1.221
+
+teamviewer：
+admin，密码admin1234， 1241492682
+
+1， Packets larger than "max_allowed_packet" are not allowed
+SET GLOBAL max_allowed_packet=1000*1024*1024; 
+
+1， 需求
+resize 500
+
+URL:
+
+1， 通过URL 获取视频流，
+2，rtsp
+
+
+结构关系check 
+1，避免根结构指向其他结构
+
+功能和失效依赖check
+1， 不存在
+2， 依赖孤立结构
+3， 存在在子结构里
+
+
+appendChild
+appendDependentFunction
+appendDependentFailure

@@ -48,11 +48,15 @@
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<Project>().HasIndex(p => new { p.ProjectName }).IsUnique(true);
+            modelBuilder.Entity<Project>().HasIndex(p => new { p.ProjectName, p.CreatedById }).IsUnique(true);
 
             modelBuilder.Entity<WorkProjectTemplate>().HasIndex(w => new { w.Name }).IsUnique(true);
         }
 
         public DbSet<WorkProjectTemplate> WorkProjectTemplates { get; set; }
+
+
+        public DbSet<ProjectFile> ProjectFiles { get; set; }
+
     }
 }

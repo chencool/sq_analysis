@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web;
+using System.Web.Http;
 using System.Web.Mvc;
 
 using ElFinder.DTO;
@@ -16,81 +17,81 @@ namespace ElFinder
     public class FileSystemDriver : IDriver
     {
         #region private  
-            private const string _volumePrefix = "v";
-            private List<Root> _roots;
+        private const string _volumePrefix = "v";
+        private List<Root> _roots;
 
-            private JsonResult Json(object data)
+        private JsonResult Json(object data)
+        {
+            return new JsonDataContractResult(data) { JsonRequestBehavior = JsonRequestBehavior.AllowGet, ContentType = "text/html" };
+        }
+        private void DirectoryCopy(DirectoryInfo sourceDir, string destDirName, bool copySubDirs)
+        {
+            DirectoryInfo[] dirs = sourceDir.GetDirectories();
+
+            // If the source directory does not exist, throw an exception.
+            if (!sourceDir.Exists)
             {
-                return new JsonDataContractResult(data) { JsonRequestBehavior = JsonRequestBehavior.AllowGet, ContentType = "text/html" };
-            }
-            private void DirectoryCopy(DirectoryInfo sourceDir, string destDirName, bool copySubDirs)
-            {
-                DirectoryInfo[] dirs = sourceDir.GetDirectories();
-
-                // If the source directory does not exist, throw an exception.
-                if (!sourceDir.Exists)
-                {
-                    throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourceDir.FullName);
-                }
-
-                // If the destination directory does not exist, create it.
-                if (!Directory.Exists(destDirName))
-                {
-                    Directory.CreateDirectory(destDirName);
-                }
-
-                // Get the file contents of the directory to copy.
-                FileInfo[] files = sourceDir.GetFiles();
-
-                foreach (FileInfo file in files)
-                {
-                    // Create the path to the new copy of the file.
-                    string temppath = Path.Combine(destDirName, file.Name);
-
-                    // Copy the file.
-                    file.CopyTo(temppath, false);
-                }
-
-                // If copySubDirs is true, copy the subdirectories.
-                if (copySubDirs)
-                {
-                    foreach (DirectoryInfo subdir in dirs)
-                    {
-                        // Create the subdirectory.
-                        string temppath = Path.Combine(destDirName, subdir.Name);
-
-                        // Copy the subdirectories.
-                        DirectoryCopy(subdir, temppath, copySubDirs);
-                    }
-                }
+                throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourceDir.FullName);
             }
 
-            private void RemoveThumbs(FullPath path)
+            // If the destination directory does not exist, create it.
+            if (!Directory.Exists(destDirName))
             {
-                if (path.Directory != null)
+                Directory.CreateDirectory(destDirName);
+            }
+
+            // Get the file contents of the directory to copy.
+            FileInfo[] files = sourceDir.GetFiles();
+
+            foreach (FileInfo file in files)
+            {
+                // Create the path to the new copy of the file.
+                string temppath = Path.Combine(destDirName, file.Name);
+
+                // Copy the file.
+                file.CopyTo(temppath, false);
+            }
+
+            // If copySubDirs is true, copy the subdirectories.
+            if (copySubDirs)
+            {
+                foreach (DirectoryInfo subdir in dirs)
                 {
-                    string thumbPath = path.Root.GetExistingThumbPath(path.Directory);
-                    if (thumbPath != null)
-                        Directory.Delete(thumbPath, true);
-                }
-                else
-                {
-                    string thumbPath = path.Root.GetExistingThumbPath(path.File);
-                    if (thumbPath != null)
-                        File.Delete(thumbPath);
+                    // Create the subdirectory.
+                    string temppath = Path.Combine(destDirName, subdir.Name);
+
+                    // Copy the subdirectories.
+                    DirectoryCopy(subdir, temppath, copySubDirs);
                 }
             }
+        }
+
+        private void RemoveThumbs(FullPath path)
+        {
+            if (path.Directory != null)
+            {
+                string thumbPath = path.Root.GetExistingThumbPath(path.Directory);
+                if (thumbPath != null)
+                    Directory.Delete(thumbPath, true);
+            }
+            else
+            {
+                string thumbPath = path.Root.GetExistingThumbPath(path.File);
+                if (thumbPath != null)
+                    File.Delete(thumbPath);
+            }
+        }
         #endregion
 
         #region public 
-        
+
         public FullPath ParsePath(string target)
         {
             string volumePrefix = null;
             string pathHash = null;
             for (int i = 0; i < target.Length; i++)
             {
-                if ( target[i] == '_')
+                if (target[i] == '_')
                 {
                     pathHash = target.Substring(i + 1);
                     volumePrefix = target.Substring(0, i + 1);
@@ -148,7 +149,7 @@ namespace ElFinder
             }
             foreach (DirectoryInfo item in fullPath.Directory.GetDirectories())
             {
-                if((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
+                if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
                     answer.Files.Add(DTOBase.Create(item, fullPath.Root));
             }
             return Json(answer);
@@ -161,13 +162,13 @@ namespace ElFinder
                 Root root = _roots.FirstOrDefault(r => r.StartPath != null);
                 if (root == null)
                     root = _roots.First();
-                fullPath = new FullPath(root, root.StartPath??root.Directory);
+                fullPath = new FullPath(root, root.StartPath ?? root.Directory);
             }
             else
             {
                 fullPath = ParsePath(target);
             }
-            InitResponse answer = new InitResponse(DTOBase.Create(fullPath.Directory, fullPath.Root), new Options(fullPath));            
+            InitResponse answer = new InitResponse(DTOBase.Create(fullPath.Directory, fullPath.Root), new Options(fullPath));
 
             foreach (FileInfo item in fullPath.Directory.GetFiles())
             {
@@ -191,7 +192,7 @@ namespace ElFinder
                         answer.Files.Add(DTOBase.Create(item, fullPath.Root));
                 }
             }
-            if(fullPath.Root.MaxUploadSize.HasValue)
+            if (fullPath.Root.MaxUploadSize.HasValue)
             {
                 answer.UploadMaxSize = fullPath.Root.MaxUploadSizeInKb.Value + "K";
             }
@@ -200,7 +201,7 @@ namespace ElFinder
         ActionResult IDriver.File(string target, bool download)
         {
             FullPath fullPath = ParsePath(target);
-            if(fullPath.IsDirectoty)
+            if (fullPath.IsDirectoty)
                 return new HttpStatusCodeResult(403, "You can not download whole folder");
             if (!fullPath.File.Exists)
                 return new HttpNotFoundResult("File not found");
@@ -208,13 +209,14 @@ namespace ElFinder
                 return new HttpStatusCodeResult(403, "Access denied. Volume is for show only");
             return new DownloadFileResult(fullPath.File, download);
         }
+
         JsonResult IDriver.Parents(string target)
         {
             FullPath fullPath = ParsePath(target);
             TreeResponse answer = new TreeResponse();
             if (fullPath.Directory.FullName == fullPath.Root.Directory.FullName)
             {
-                answer.Tree.Add(DTOBase.Create(fullPath.Directory, fullPath.Root)); 
+                answer.Tree.Add(DTOBase.Create(fullPath.Directory, fullPath.Root));
             }
             else
             {
@@ -262,7 +264,7 @@ namespace ElFinder
         {
             FullPath fullPath = ParsePath(target);
             FileInfo newFile = new FileInfo(Path.Combine(fullPath.Directory.FullName, name));
-            newFile.Create().Close();            
+            newFile.Create().Close();
             return Json(new AddResponse(newFile, fullPath.Root));
         }
         JsonResult IDriver.Rename(string target, string name)
@@ -291,7 +293,7 @@ namespace ElFinder
             foreach (string item in targets)
             {
                 FullPath fullPath = ParsePath(item);
-                RemoveThumbs(fullPath);                
+                RemoveThumbs(fullPath);
                 if (fullPath.Directory != null)
                 {
                     System.IO.Directory.Delete(fullPath.Directory.FullName, true);
@@ -307,7 +309,7 @@ namespace ElFinder
         JsonResult IDriver.Get(string target)
         {
             FullPath fullPath = ParsePath(target);
-            GetResponse answer =  new GetResponse();
+            GetResponse answer = new GetResponse();
             using (StreamReader reader = new StreamReader(fullPath.File.OpenRead()))
             {
                 answer.Content = reader.ReadToEnd();
@@ -386,7 +388,7 @@ namespace ElFinder
             }
             for (int i = 0; i < targets.AllKeys.Length; i++)
             {
-                HttpPostedFileBase file = targets[i];                
+                HttpPostedFileBase file = targets[i];
                 FileInfo path = new FileInfo(Path.Combine(dest.Directory.FullName, Path.GetFileName(file.FileName)));
 
                 if (path.Exists)
@@ -424,7 +426,7 @@ namespace ElFinder
                 else
                 {
                     file.SaveAs(path.FullName);
-                }                
+                }
                 response.Added.Add((FileDTO)DTOBase.Create(new FileInfo(path.FullName), dest.Root));
             }
             return Json(response);

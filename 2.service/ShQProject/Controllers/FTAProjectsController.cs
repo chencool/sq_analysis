@@ -143,6 +143,13 @@ namespace Dxc.Shq.WebApi.Controllers
                     foreach (var jsNode in jsonSource.nodes)
                     {
                         string jsNodeId = jsNode.id;
+
+                        var node = db.FTANodes.FirstOrDefault(item => item.FTAProjectId == docs.Id && item.EventId == jsNodeId);
+                        if (node != null)
+                        {
+                            jsNode.Color = node.Color;
+                        }
+
                         using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
                         {
                             con.Open();
@@ -605,6 +612,7 @@ namespace Dxc.Shq.WebApi.Controllers
                     fn.NodeName = node.Name;
                     fn.Shape = node.Shape;
                     fn.Size = node.Size;
+                    fn.Color = node.Color;
                     fn.X = node.X;
                     fn.Y = node.Y;
                     fn.ParentId = -1;
