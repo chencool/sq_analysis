@@ -144,12 +144,6 @@ namespace Dxc.Shq.WebApi.Controllers
                     {
                         string jsNodeId = jsNode.id;
 
-                        var node = db.FTANodes.FirstOrDefault(item => item.FTAProjectId == docs.Id && item.EventId == jsNodeId);
-                        if (node != null)
-                        {
-                            jsNode.Color = node.Color;
-                        }
-
                         using (var con = new MySqlConnection(ConfigurationManager.ConnectionStrings["ShqContext"].ConnectionString))
                         {
                             con.Open();
@@ -162,12 +156,13 @@ namespace Dxc.Shq.WebApi.Controllers
                             //    jsNode.smallFailureRateQ = node.SmallFailureRateQ;
                             //}
 
-                            cmd.CommandText = string.Format("select SmallFailureRateQ from shqdb.ftanodes where FTAProjectId = '{0}' and EventId = '{1}' limit 1;", docs.Id, jsNodeId);
+                            cmd.CommandText = string.Format("select SmallFailureRateQ,Color from shqdb.ftanodes where FTAProjectId = '{0}' and EventId = '{1}' limit 1;", docs.Id, jsNodeId);
                             using (var rdr = cmd.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection))
                             {
                                 while (rdr.Read())
                                 {
                                     jsNode.smallFailureRateQ = rdr.GetDouble(0);
+                                    jsNode.color = rdr.GetString(1);
                                 }
                             }
                         }

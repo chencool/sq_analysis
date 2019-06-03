@@ -431,6 +431,61 @@ namespace ElFinder
             }
             return Json(response);
         }
+
+        public JsonResult Upload(string target, HttpPostedFileBase file, string name)
+        {
+            FullPath dest = ParsePath(target);
+            var response = new AddResponse();
+            if (dest.Root.MaxUploadSize.HasValue)
+            {
+                if (file.ContentLength > dest.Root.MaxUploadSize.Value)
+                {
+                    return Error.MaxUploadFileSize();
+                }
+            }
+
+            FileInfo path = new FileInfo(Path.Combine(dest.Directory.FullName, name));
+            if (path.Exists)
+            {
+                if (dest.Root.UploadOverwrite)
+                {
+                    //if file already exist we rename the current file, 
+                    //and if upload is succesfully delete temp file, in otherwise we restore old file
+                    string tmpPath = path.FullName + Guid.NewGuid();
+                    bool uploaded = false;
+                    try
+                    {
+                        file.SaveAs(tmpPath);
+                        uploaded = true;
+                    }
+                    catch { }
+                    finally
+                    {
+                        if (uploaded)
+                        {
+                            File.Delete(path.FullName);
+                            File.Move(tmpPath, path.FullName);
+                        }
+                        else
+                        {
+                            File.Delete(tmpPath);
+                        }
+                    }
+                }
+                else
+                {
+                    file.SaveAs(Path.Combine(path.DirectoryName, Helper.GetDuplicatedName(path)));
+                }
+            }
+            else
+            {
+                file.SaveAs(path.FullName);
+            }
+            response.Added.Add((FileDTO)DTOBase.Create(new FileInfo(path.FullName), dest.Root));
+
+            return Json(response);
+        }
+
         JsonResult IDriver.Duplicate(IEnumerable<string> targets)
         {
             AddResponse response = new AddResponse();

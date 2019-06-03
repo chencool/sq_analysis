@@ -18,7 +18,17 @@ Return login data: <input id="loginData" type="text" name="lname" value="" style
 All users: <p id="allUserData"></p><br>
 </div>
 
+<form>
+        <div>
+            <label for="fileUpload" />
+            Select File to Upload: <input id="fileUpload" type="file" />
 
+            <input id="btnUploadFile" type="button" value="Upload File" />
+
+        </div>
+    </form>
+    <br>
+<br>
 
 <div>
 	More General Testing:
@@ -31,6 +41,7 @@ All users: <p id="allUserData"></p><br>
 		<option value="DELETE">DELETE</option>
 	</select> <br>
 	<button id="btn03">Submit</button><br>
+	<button id="btn04">download</button><br>
 
 	Return Data: <textarea cols="50" rows="20"  id ="outputData"></textarea> <br>
 
@@ -65,7 +76,7 @@ $(document).ready(function () {
 	        headers: {
 		        'Authorization': tocken
 		    },
-	        url: "http://localhost:55011/api/ProjectFiles/Update?explorerInfo={'Id':'1b2cd8ab-6d6c-4a05-931b-e40607bd8b19','ParentPath':'templates','ProjectId':'*','Name':'newfolder2','Level':1,'cmd':'uploadFile'}",
+	        url: "http://localhost:55011/api/ProjectFiles/Update?explorerInfo={'Id':'1b2cd8ab-6d6c-4a05-931b-e40607bd8b19','ParentPath':'templates\\\\newfolder2.1b2cd8ab-6d6c-4a05-931b-e40607bd8b19','ProjectId':'*','Name':'newfolder2','Level':1,'cmd':'uploadFile'}",
 	        contentType: false,
 	        processData: false,
 	        data: data
@@ -164,6 +175,33 @@ $(document).ready(function () {
 		});
 
 	});
+
+	$("#btn04").click(function() {
+		var url = $('#testURL').val();
+		var tocken = 'bearer '+ $("#loginData").val();
+		var method = $('#methodOption').val();
+
+		$.ajax({
+		    url: url,
+		    headers: {
+		        'Authorization': tocken
+		    },
+		    type: method,
+		    success: function(json) {   
+		    	console.log(json);
+	        	var blob=new Blob([json]);
+			    var link=document.createElement('a');
+			    link.href=window.URL.createObjectURL(blob);
+			    link.download="a.txt";
+			    link.click();
+	    	},
+	    	error: function(data) {
+	          var responseText=JSON.parse(data.responseText);
+	          $("#outputData").html(JSON.stringify(responseText));
+	     		}
+		});
+	});
+
 });
 
 </script>

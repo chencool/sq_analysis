@@ -16,7 +16,6 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         public string ProjectId { get; set; }
 
-        [Required]
         public string Name { get; set; }
 
         public string OldName { get; set; }

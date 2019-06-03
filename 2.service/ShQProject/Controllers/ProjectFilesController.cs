@@ -82,11 +82,11 @@ namespace Dxc.Shq.WebApi.Controllers
             string folder;
             if (Guid.TryParse(einfo.ProjectId, out projectId) == true)
             {
-                folder = Path.Combine(ShqConstants.ProjectRootFolder, einfo.ParentPath);
+                folder = ShqConstants.ProjectRootFolder + "\\" + einfo.ParentPath;
             }
             else
             {
-                folder = Path.Combine(ShqConstants.TemplateRootFolder, einfo.ParentPath);
+                folder = ShqConstants.TemplateRootFolder + "\\" + einfo.ParentPath;
             }
             folder = new DirectoryInfo(Path.Combine(folder, "1b2cd8ab-6d6c-4a05-931b-e40607bd8b19")).Parent.FullName;//to workaround a issue the if path end with \ will fail
 
@@ -109,17 +109,28 @@ namespace Dxc.Shq.WebApi.Controllers
                         fileSystemDriver.AddRoot(root);
                         string target = root.VolumeId + Helper.EncodePath(new DirectoryInfo(folder).Name);
 
-                        driver.MakeDir(target, name);
-                        db.ProjectFiles.Add(new ProjectFile
+                        try
                         {
-                            Id = einfo.Id,
-                            Name = einfo.Name,
-                            Level = einfo.Level,
-                            IsFolder = true,
-                            Path = Path.Combine(folder, name),
-                            CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
-                            LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
-                        });
+                            driver.MakeDir(target, name);
+
+                        }
+                        finally
+                        {
+                            if (Directory.Exists(Path.Combine(folder, name)))
+                            {
+                                db.ProjectFiles.Add(new ProjectFile
+                                {
+                                    Id = einfo.Id,
+                                    Name = einfo.Name,
+                                    Level = einfo.Level,
+                                    IsFolder = true,
+                                    Path = Path.Combine(folder, name),
+                                    CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
+                                    LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
+                                });
+                            }
+                        }
+
                         break;
                     }
                 case "delete":
@@ -175,8 +186,6 @@ namespace Dxc.Shq.WebApi.Controllers
                 case "uploadFile"://https://forums.asp.net/t/2104884.aspx?Uploading+a+file+using+webapi+C+
                     {
                         var fileSystemDriver = new FileSystemDriver();
-                        IDriver driver = fileSystemDriver;
-                        folder = Path.Combine(folder, name);
                         var root = new Root(new DirectoryInfo(folder))
                         {
                             IsReadOnly = false,
@@ -188,7 +197,29 @@ namespace Dxc.Shq.WebApi.Controllers
                         string target = root.VolumeId + Helper.EncodePath(new DirectoryInfo(folder).Name);
 
                         var wrapper = new HttpRequestWrapper(HttpContext.Current.Request);
-                        driver.Upload(target, wrapper.Files);
+                        string fileName = wrapper.Files[0].FileName + "." + einfo.Id;
+                        try
+                        {
+                            fileSystemDriver.Upload(target, wrapper.Files[0], fileName);
+                        }
+                        finally
+                        {
+
+                            if (File.Exists(Path.Combine(folder, fileName)))
+                            {
+                                db.ProjectFiles.Add(new ProjectFile
+                                {
+                                    Id = einfo.Id,
+                                    Name = wrapper.Files[0].FileName,
+                                    Level = einfo.Level,
+                                    IsFolder = false,
+                                    Path = Path.Combine(folder, fileName),
+                                    CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
+                                    LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
+                                });
+                            }
+                        }
+
                         break;
                     }
                 case "dowloadFile":
