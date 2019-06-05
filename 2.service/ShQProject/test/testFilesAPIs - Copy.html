@@ -1,0 +1,209 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <script src="http://localhost:55011/test/jquery-3.3.1.js"></script>
+
+</head>
+<body>
+ 
+User name: <input id="uname" type="text" name="fname" value="admin@dxc.com"><br>
+Password name: <input id="upsw" type="text" name="lname" value="123456"><br>
+
+1. First click <button id="btn01">Get login tocken</button>
+</br>
+Return login data: <input id="loginData" type="text" name="lname" value="" style="width:1500px;"><br>
+</br>
+2. And then use tocken to call other methods like <button id="btn02">Get all Users</button>
+<div>
+All users: <p id="allUserData"></p><br>
+</div>
+
+<form>
+        <div>
+            <label for="fileUpload" />
+            Select File to Upload: <input id="fileUpload" type="file" />
+
+            <input id="btnUploadFile" type="button" value="Upload File" />
+
+        </div>
+    </form>
+    <br>
+<br>
+
+<div>
+	More General Testing:
+	<div>URL:<input id="testURL" type="text" name="fname" value="http://localhost:55011/api" style="width:1500px;"><br></div>
+	Input Data: <textarea cols="50" rows="20"  id ="inputData"></textarea> <br>
+	Method: <select id="methodOption">
+		<option value="GET">GET</option>
+		<option value="POST">POST</option>
+		<option value="PUT">PUT</option>
+		<option value="DELETE">DELETE</option>
+	</select> <br>
+	<button id="btn03">Submit</button><br>
+	<button id="btn04">download</button><br>
+
+	Return Data: <textarea cols="50" rows="20"  id ="outputData"></textarea> <br>
+
+<br>
+<br>
+	
+</div>
+
+<br>
+<br>
+
+ 
+<script>
+
+$(document).ready(function () {
+	$('#btnUploadFile').on('click', function () {
+
+	    var data = new FormData();
+
+	    var files = $("#fileUpload").get(0).files;
+
+	    // Add the uploaded image content to the form data collection
+	    if (files.length > 0) {
+	        data.append("UploadedImage", files[0]);
+	    }
+
+	    var tocken = 'bearer '+ $("#loginData").val();
+
+	    // Make Ajax request with the contentType = false, and procesDate = false
+	    $.ajax({
+	        type: "POST",
+	        headers: {
+		        'Authorization': tocken
+		    },
+	        url: "http://localhost:55011/api/ProjectFiles/Update?explorerInfo={'Id':'1b2cd8ab-6d6c-4a05-931b-e40607bd8b19','ParentPath':'templates\\\\newfolder2.1b2cd8ab-6d6c-4a05-931b-e40607bd8b19','ProjectId':'*','Name':'newfolder2','Level':1,'cmd':'uploadFile'}",
+	        contentType: false,
+	        processData: false,
+	        data: data
+	    });
+	});
+
+	$("#btn01").click(function() {
+		var userName = $("#uname").val();
+		var psw = $("#upsw").val();
+
+		$.ajax({
+		    url: 'http://localhost:55011/oauth2/token',
+		    headers: {
+		        'Accept':'application/json',
+		        'Content-Type':'application/x-www-form-urlencoded'
+		    },
+		    method: 'POST',
+		    dataType: 'json',
+		    data: 'username=' + userName + '&password='+ psw +'&grant_type=password',
+		    success: function(json) {
+	        	$("#loginData").val(json.access_token);
+	    	},
+	    	error: function(data) {
+	          //console.log(data);
+	          var responseText=JSON.parse(data.responseText);
+	          alert($.param(responseText));
+	     		}
+		});
+	});
+
+	$("#btn02").click(function() {
+		var tocken = 'bearer '+ $("#loginData").val();
+
+		$.ajax({
+		    url: 'http://localhost:55011/api/ShqUsers/All',
+		    headers: {
+		        'Authorization': tocken,
+			'contentType': 'application/json'
+		    },
+		    method: 'GET',
+		    dataType: 'json',
+		    data: '',
+		    success: function(json) {   
+	        	$("#allUserData").html(JSON.stringify(json));
+	    	},
+	    	error: function(data) {
+	          //console.log(data);
+	          var responseText=JSON.parse(data.responseText);
+	          alert($.param(responseText));
+	     		}
+		});
+	});
+
+	$("#btn03").click(function() {
+		var url = $('#testURL').val();
+		var method = $('#methodOption').val();
+		var tocken = 'bearer '+ $("#loginData").val();
+		var tempdata = $('#inputData').val();
+		if(tempdata == '')
+		{
+			tempdata = '{}'
+		}
+		var inputdata = $.parseJSON(tempdata);
+
+		if(method == "GET"||method == "DELETE")
+		{
+			inputdata='';
+		}
+		else
+		{
+			if(tempdata=='{}')
+			{
+				$("#outputData").html('Please input json request data first.');
+				return;
+			}
+		}
+
+		$("#outputData").html("");
+
+		$.ajax({
+		    url: url,
+		    headers: {
+		        'Authorization': tocken
+		    },
+		    type: method,
+			contentType: 'application/json',
+		    dataType: 'json',
+		    data: tempdata,
+		    success: function(json) {   
+	        	$("#outputData").html(JSON.stringify(json));
+	    	},
+	    	error: function(data) {
+	          var responseText=JSON.parse(data.responseText);
+	          $("#outputData").html(JSON.stringify(responseText));
+	     		}
+		});
+
+	});
+
+	$("#btn04").click(function() {
+		var url = $('#testURL').val();
+		var tocken = 'bearer '+ $("#loginData").val();
+		var method = $('#methodOption').val();
+
+		$.ajax({
+		    url: url,
+		    headers: {
+		        'Authorization': tocken
+		    },
+		    type: method,
+		    success: function(json) {   
+		    	console.log(json);
+	        	var blob=new Blob([json]);
+			    var link=document.createElement('a');
+			    link.href=window.URL.createObjectURL(blob);
+			    link.download="a.txt";
+			    link.click();
+	    	},
+	    	error: function(data) {
+	          var responseText=JSON.parse(data.responseText);
+	          $("#outputData").html(JSON.stringify(responseText));
+	     		}
+		});
+	});
+
+});
+
+</script>
+</body>
+</html>

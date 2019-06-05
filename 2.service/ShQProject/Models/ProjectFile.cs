@@ -9,8 +9,20 @@ namespace Dxc.Shq.WebApi.Models
 {
     public class ProjectFile : DataBase
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
-        public Guid Id { get; set; }
+        public int Id { get; set; }
+        public Guid FileId { get; set; }
+
+        [ForeignKey("WorkProjectTemplate")]
+        public Guid? WorkProjectTemplateId { get; set; }
+
+        public WorkProjectTemplate WorkProjectTemplate { get; set; }
+
+        [ForeignKey("WorkProject")]
+        public Guid? WorkProjectId { get; set; }
+
+        public WorkProject WorkProject { get; set; }
 
         [Required]
         public string Name { get; set; }

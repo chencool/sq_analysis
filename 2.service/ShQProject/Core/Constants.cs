@@ -12,6 +12,8 @@ namespace Dxc.Shq.WebApi.Core
         public const string AdministratorRole = "Administrator";
         public const string UserRole = "User";
 
+        public static Guid DefaultWorkProjectTemplateId = new Guid("1b2cd8ab-6d6c-4a05-931b-e40607bd8b19");
+
         public const int DefaultFileLevel = 0;
 
         public const int NoProjectAccess = 0;
@@ -46,11 +48,16 @@ namespace Dxc.Shq.WebApi.Core
             }
         }
 
-        public static bool IsGuidEnded(string path)
+        public static int GetPathId(string path)
         {
             string id = System.IO.Path.GetExtension(path).Replace(".", "");
-            Guid temp = Guid.NewGuid();
-            return Guid.TryParse(id, out temp);
+            int pathId;
+            if(int.TryParse(id,out pathId) ==true)
+            {
+                return pathId;
+            }
+
+            return 0;
         }
     }
 }

@@ -481,19 +481,20 @@
             </summary>
             <param name="documentPath">The physical path to XML document.</param>
         </member>
-        <member name="M:Dxc.Shq.WebApi.Controllers.ProjectFilesController.GetProjectFiles(System.String,System.IO.SearchOption)">
+        <member name="M:Dxc.Shq.WebApi.Controllers.ProjectFilesController.GetProjectFiles(System.Guid,System.String,System.IO.SearchOption)">
             <summary>
             get files
             </summary>
-            <param name="path">the path to seach, "templates\.." mean tempalte folder, "projects\{projectid}\..." mean project folders</param>
+            <param name="projectId">the project id, the default template id is 1b2cd8ab-6d6c-4a05-931b-e40607bd8b19</param>
+            <param name="path">the path to seach, the path is started by Root folder</param>
             <param name="searchOption">0 for sub folder, 1 for all children folders</param>
             <returns></returns>
         </member>
-        <member name="M:Dxc.Shq.WebApi.Controllers.ProjectFilesController.Update(System.String)">
+        <member name="M:Dxc.Shq.WebApi.Controllers.ProjectFilesController.Update(Dxc.Shq.WebApi.ViewModels.ExplorerInfoViewModel)">
             <summary>
             explorer ops
             </summary>
-            <param name="explorerInfo">JSON string by ExplorerInfoViewModel defined</param>
+            <param name="einfo">JSON string by ExplorerInfoViewModel defined</param>
             <returns></returns>
         </member>
         <member name="P:Dxc.Shq.WebApi.Core.JsonFTAProperties.FailureRateQ">
@@ -562,14 +563,34 @@
             潜伏故障诊断覆盖率
             </summary>
         </member>
+        <member name="P:Dxc.Shq.WebApi.ViewModels.ExplorerInfoViewModel.Name">
+            <summary>
+            File or folder name
+            </summary>
+        </member>
+        <member name="P:Dxc.Shq.WebApi.ViewModels.ExplorerInfoViewModel.OldName">
+            <summary>
+            Old file or folder name
+            </summary>
+        </member>
+        <member name="P:Dxc.Shq.WebApi.ViewModels.ExplorerInfoViewModel.Level">
+            <summary>
+            file or folder level
+            </summary>
+        </member>
         <member name="P:Dxc.Shq.WebApi.ViewModels.ExplorerInfoViewModel.cmd">
             <summary>
             "createFolder"
-            "deleteFolder"
+            "delete"
+            "rename"
             "uploadFile"
             "dowloadFile"
-            "deleteFile"
             "newLevel"
+            </summary>
+        </member>
+        <member name="P:Dxc.Shq.WebApi.ViewModels.ExplorerInfoViewModel.FileContent">
+            <summary>
+            the file content return by readAsDataURL
             </summary>
         </member>
     </members>

@@ -28,67 +28,95 @@ namespace Dxc.Shq.WebApi.Controllers
         /// <summary>
         /// get files
         /// </summary>
-        /// <param name="path">the path to seach, "templates\.." mean tempalte folder, "projects\{projectid}\..." mean project folders</param>
+        /// <param name="projectId">the project id, the default template id is 1b2cd8ab-6d6c-4a05-931b-e40607bd8b19</param>
+        /// <param name="path">the path to seach, the path is started by Root folder</param>
         /// <param name="searchOption">0 for sub folder, 1 for all children folders</param>
         /// <returns></returns>
         [Route("api/ProjectFiles")]
-        public async Task<IHttpActionResult> GetProjectFiles(string path, SearchOption searchOption)
+        public async Task<IHttpActionResult> GetProjectFiles(Guid projectId, string path, SearchOption searchOption)
         {
             bool isTemplated = false;
-
-            if (path.StartsWith("projects"))
+            string fullPath;
+            if (string.IsNullOrEmpty(path) == true || path.StartsWith("Root") == false)
             {
-                Guid projectId = new Guid(path.Split('\\')[1]);
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "path must start with Root"));
+            }
 
-                Project pro = await db.Projects.FindAsync(projectId);
-                if (pro == null)
-                {
-                    return NotFound();
-                }
-
+            var pro = db.Projects.FirstOrDefault(item => item.Id == projectId);
+            if (pro != null)
+            {
                 if (ProjectHelper.HasReadAccess(pro) == false)
                 {
                     throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
                 }
+
+                fullPath = Path.Combine(ShqConstants.ProjectRootFolder, projectId.ToString()) + "\\" + path;
             }
-            else if (path.StartsWith("templates"))
+            else if (db.WorkProjectTemplates.FirstOrDefault(item => item.Id == projectId) != null)
             {
                 if (HttpContext.Current.User.IsInRole(ShqConstants.AdministratorRole) == false)
                 {
                     throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
                 }
 
-                isTemplated = true;
+                fullPath = Path.Combine(ShqConstants.TemplateRootFolder, projectId.ToString()) + "\\" + path;
             }
             else
             {
-                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "path in error format"));
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "projectId is not found"));
             }
 
-            return Ok(new ProjectFolderViewModel(path, isTemplated, searchOption, db));
+            return Ok(new ProjectFolderViewModel(new ProjectFilePath { FullPath = fullPath, Path = path }, searchOption, db));
         }
 
         /// <summary>
         /// explorer ops
         /// </summary>
-        /// <param name="explorerInfo">JSON string by ExplorerInfoViewModel defined</param>
+        /// <param name="einfo">JSON string by ExplorerInfoViewModel defined</param>
         /// <returns></returns>
         [Route("api/ProjectFiles/Update")]
         [HttpPost]
-        public HttpResponseMessage Update(string explorerInfo)
+        public HttpResponseMessage Update(ExplorerInfoViewModel einfo)
         {
-            ExplorerInfoViewModel einfo = JsonConvert.DeserializeObject<ExplorerInfoViewModel>(explorerInfo);
-            Guid projectId;
+            WorkProject wp = null;
             string folder;
-            if (Guid.TryParse(einfo.ProjectId, out projectId) == true)
+            var pro = db.Projects.FirstOrDefault(item => item.Id == einfo.ProjectId);
+            Guid? projectId;
+            Guid worktemplateid = Guid.Empty;
+            if (pro != null)
             {
-                folder = ShqConstants.ProjectRootFolder + "\\" + einfo.ParentPath;
+                if (ProjectHelper.HasReadAccess(pro) == false)
+                {
+                    throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
+                }
+
+                folder = ShqConstants.ProjectRootFolder + "\\" + einfo.ProjectId + "\\" + einfo.ParentPath;
+                wp = db.WorkProjects.FirstOrDefault(item => item.Id == einfo.ProjectId);
+                projectId = einfo.ProjectId;
+                worktemplateid = wp.WorkProjectTemplateId;
+            }
+            else if (db.WorkProjectTemplates.FirstOrDefault(item => item.Id == einfo.ProjectId) != null)
+            {
+                if (HttpContext.Current.User.IsInRole(ShqConstants.AdministratorRole) == false)
+                {
+                    throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
+                }
+
+                projectId = null;
+                worktemplateid = einfo.ProjectId;
+                folder = ShqConstants.TemplateRootFolder + "\\" + worktemplateid + "\\" + einfo.ParentPath;
             }
             else
             {
-                folder = ShqConstants.TemplateRootFolder + "\\" + einfo.ParentPath;
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "projectId is not found"));
             }
+
             folder = new DirectoryInfo(Path.Combine(folder, "1b2cd8ab-6d6c-4a05-931b-e40607bd8b19")).Parent.FullName;//to workaround a issue the if path end with \ will fail
+
+            if (CheckIfParentExistInDb(folder) == false)
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "The parent folder is not found in the db"));
+            }
 
             string name = einfo.Name + "." + einfo.Id.ToString();
             string oldName = einfo.OldName + "." + einfo.Id.ToString();
@@ -97,6 +125,11 @@ namespace Dxc.Shq.WebApi.Controllers
             {
                 case "createFolder":
                     {
+                        if (string.IsNullOrEmpty(einfo.Name) == true)
+                        {
+                            break;
+                        }
+
                         var fileSystemDriver = new FileSystemDriver();
                         IDriver driver = fileSystemDriver;
                         var root = new Root(new DirectoryInfo(folder))
@@ -107,27 +140,51 @@ namespace Dxc.Shq.WebApi.Controllers
                             LockedFolders = new List<string>()
                         };
                         fileSystemDriver.AddRoot(root);
-                        string target = root.VolumeId + Helper.EncodePath(new DirectoryInfo(folder).Name);
 
-                        try
+                        var dbFile = db.ProjectFiles.FirstOrDefault(item => item.WorkProjectId == projectId && item.WorkProjectTemplateId == worktemplateid && item.Name == einfo.Name);
+                        if (dbFile != null)
                         {
-                            driver.MakeDir(target, name);
-
+                            break;
                         }
-                        finally
+                        else
                         {
-                            if (Directory.Exists(Path.Combine(folder, name)))
+                            var projectFile = db.ProjectFiles.Add(new ProjectFile
                             {
-                                db.ProjectFiles.Add(new ProjectFile
+                                FileId = Guid.NewGuid(),
+                                Name = einfo.Name,
+                                Level = einfo.Level,
+                                IsFolder = true,
+                                Path = Path.Combine(folder, einfo.Name),
+                                WorkProjectId = projectId,
+                                WorkProjectTemplateId = worktemplateid,
+                                CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
+                                LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
+                            });
+
+                            if (wp != null)
+                            {
+                                wp.ProjectFiles.Add(projectFile);
+                            }
+
+                            db.SaveChanges();
+
+                            name = einfo.Name + "." + projectFile.Id.ToString();
+                            string target = root.VolumeId + Helper.EncodePath(new DirectoryInfo(folder).Name);
+
+                            try
+                            {
+                                driver.MakeDir(target, name);
+                            }
+                            finally
+                            {
+                                if (Directory.Exists(Path.Combine(folder, name)))
                                 {
-                                    Id = einfo.Id,
-                                    Name = einfo.Name,
-                                    Level = einfo.Level,
-                                    IsFolder = true,
-                                    Path = Path.Combine(folder, name),
-                                    CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
-                                    LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
-                                });
+                                    projectFile.Path = Path.Combine(folder, name);
+                                }
+                                else
+                                {
+                                    db.ProjectFiles.Remove(projectFile);
+                                }
                             }
                         }
 
@@ -149,7 +206,7 @@ namespace Dxc.Shq.WebApi.Controllers
                         string target = root.VolumeId + Helper.EncodePath(new DirectoryInfo(folder).Name);
 
                         driver.Remove(new string[] { target });
-                        var f = db.ProjectFiles.FirstOrDefault(item => item.Id == einfo.Id);
+                        var f = db.ProjectFiles.FirstOrDefault(item => item.Id == einfo.Id && item.WorkProjectId == projectId && item.WorkProjectTemplateId == worktemplateid);
                         if (f != null)
                         {
                             f.Status = 1;
@@ -173,7 +230,7 @@ namespace Dxc.Shq.WebApi.Controllers
                         string target = root.VolumeId + Helper.EncodePath(@"\" + oldName);
 
                         driver.Rename(target, name);
-                        var f = db.ProjectFiles.FirstOrDefault(item => item.Id == einfo.Id);
+                        var f = db.ProjectFiles.FirstOrDefault(item => item.Id == einfo.Id && item.WorkProjectId == projectId && item.WorkProjectTemplateId == worktemplateid);
                         if (f != null)
                         {
                             f.Name = einfo.Name;
@@ -184,6 +241,7 @@ namespace Dxc.Shq.WebApi.Controllers
                         break;
                     }
                 case "uploadFile"://https://forums.asp.net/t/2104884.aspx?Uploading+a+file+using+webapi+C+
+                    //https://shazwazza.com/post/uploading-files-and-json-data-in-the-same-request-with-angular-js/
                     {
                         var fileSystemDriver = new FileSystemDriver();
                         var root = new Root(new DirectoryInfo(folder))
@@ -194,29 +252,57 @@ namespace Dxc.Shq.WebApi.Controllers
                             LockedFolders = new List<string>()
                         };
                         fileSystemDriver.AddRoot(root);
+
+                        var dbFile = db.ProjectFiles.FirstOrDefault(item => item.WorkProjectId == projectId && item.WorkProjectTemplateId == worktemplateid && item.Name == einfo.Name);
+                        if (dbFile == null)
+                        {
+                            dbFile = db.ProjectFiles.Add(new ProjectFile
+                            {
+                                FileId = Guid.NewGuid(),
+                                Name = einfo.Name,
+                                Level = einfo.Level,
+                                IsFolder = false,
+                                Path = Path.Combine(folder, name),
+                                WorkProjectId = projectId,
+                                WorkProjectTemplateId = worktemplateid,
+                                CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
+                                LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
+                            });
+
+                            if (wp != null)
+                            {
+                                wp.ProjectFiles.Add(dbFile);
+                            }
+
+                            db.SaveChanges();
+                        }
+                        else
+                        {
+                            dbFile.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
+                            dbFile.LastModfiedTime = DateTime.Now;
+                        }
+
+                        name = einfo.Name + "." + dbFile.Id.ToString();
                         string target = root.VolumeId + Helper.EncodePath(new DirectoryInfo(folder).Name);
 
-                        var wrapper = new HttpRequestWrapper(HttpContext.Current.Request);
-                        string fileName = wrapper.Files[0].FileName + "." + einfo.Id;
                         try
                         {
-                            fileSystemDriver.Upload(target, wrapper.Files[0], fileName);
+                            byte[] bytes = Convert.FromBase64String(einfo.FileContent);
+                            fileSystemDriver.Upload(target, name, bytes);
                         }
                         finally
                         {
 
-                            if (File.Exists(Path.Combine(folder, fileName)))
+                            if (File.Exists(Path.Combine(folder, name)))
                             {
-                                db.ProjectFiles.Add(new ProjectFile
+                                if (File.Exists(Path.Combine(folder, name)))
                                 {
-                                    Id = einfo.Id,
-                                    Name = wrapper.Files[0].FileName,
-                                    Level = einfo.Level,
-                                    IsFolder = false,
-                                    Path = Path.Combine(folder, fileName),
-                                    CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
-                                    LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
-                                });
+                                    dbFile.Path = Path.Combine(folder, name);
+                                }
+                                else
+                                {
+                                    db.ProjectFiles.Remove(dbFile);
+                                }
                             }
                         }
 
@@ -224,7 +310,6 @@ namespace Dxc.Shq.WebApi.Controllers
                     }
                 case "dowloadFile":
                     {
-                        folder = Path.Combine(folder, einfo.Name);
                         if (File.Exists(folder) == false)
                         {
                             return new HttpResponseMessage(HttpStatusCode.NotFound);
@@ -249,11 +334,133 @@ namespace Dxc.Shq.WebApi.Controllers
 
                         return result;
                     }
+
+                case "newLevel":
+                    {
+                        folder = Path.Combine(folder, einfo.Name);
+                        if (File.Exists(folder) == false)
+                        {
+                            return new HttpResponseMessage(HttpStatusCode.NotFound);
+                        }
+
+                        var f = db.ProjectFiles.FirstOrDefault(item => item.Id == einfo.Id);
+                        if (f != null)
+                        {
+                            f.Level = einfo.Level;
+                            f.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
+                            f.LastModfiedTime = DateTime.Now;
+                        }
+
+                        break;
+                    }
             }
 
             db.SaveChanges();
 
             return new HttpResponseMessage(HttpStatusCode.OK);
+        }
+
+        [HttpGet]
+        [Route("api/ProjectFiles/Sync")]
+        public async Task<IHttpActionResult> SyncProjectFiles(Guid projectId)
+        {
+            string path = ShqConstants.ProjectRootFolder + "\\" + "projects\\" + projectId;
+            if (Directory.Exists(path) == false)
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            var wp = db.WorkProjects.Include("WorkProjectTemplate").FirstOrDefault(item => item.Id == projectId);
+            var sourceFiles = wp.WorkProjectTemplate.ProjectFiles.Where(item => item.Status != 1 && item.Level <= wp.Level);
+            wp.FilesToCopyNum = sourceFiles.Count();
+            wp.FilesCopiedNum = 0;
+            foreach (var file in sourceFiles)
+            {
+                string[] folers = file.Path.Split('\\');
+                string tempPath = path;
+                int to = file.IsFolder == true ? folers.Length : folers.Length - 1;
+                for (int i = 1; i < to; i++)
+                {
+                    wp.FilesCopiedNum++;
+                    await db.SaveChangesAsync();
+                    tempPath = Path.Combine(path, folers[i]);
+
+                    if (Directory.Exists(tempPath) == false)
+                    {
+                        Directory.CreateDirectory(tempPath);
+                    }
+
+                    string name = System.IO.Path.GetFileName(path);
+                    name = System.IO.Path.GetFileNameWithoutExtension(name);
+                    Guid id = new Guid(System.IO.Path.GetExtension(path).Replace(".", ""));
+
+                    var f = db.ProjectFiles.FirstOrDefault(item => item.FileId == id && item.WorkProjectTemplateId == wp.WorkProjectTemplateId && item.WorkProjectId == wp.Id);
+                    if (f == null)
+                    {
+                        var projectFile = db.ProjectFiles.Add(new ProjectFile
+                        {
+                            FileId = id,
+                            Name = name,
+                            Level = file.Level,
+                            IsFolder = file.IsFolder,
+                            Path = tempPath,
+                            WorkProjectTemplateId = wp.WorkProjectTemplateId,
+                            WorkProjectId = wp.Id,
+                            CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
+                            LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
+                        });
+
+                        wp.ProjectFiles.Add(projectFile);
+                    }
+                }
+
+                if (file.IsFolder == false)
+                {
+                    wp.FilesCopiedNum++;
+                    await db.SaveChangesAsync();
+
+                    File.Copy(file.Path, tempPath);
+
+                    var f = db.ProjectFiles.FirstOrDefault(item => item.FileId == file.FileId && item.WorkProjectTemplateId == wp.WorkProjectTemplateId && item.WorkProjectId == wp.Id);
+                    if (f == null)
+                    {
+                        var projectFile = db.ProjectFiles.Add(new ProjectFile
+                        {
+                            FileId = file.FileId,
+                            Name = file.Name,
+                            Level = file.Level,
+                            IsFolder = file.IsFolder,
+                            Path = tempPath,
+                            WorkProjectTemplateId = wp.WorkProjectTemplateId,
+                            WorkProjectId = wp.Id,
+                            CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
+                            LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
+                        });
+
+                        wp.ProjectFiles.Add(projectFile);
+                    }
+                }
+            }
+
+            await db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        private bool CheckIfParentExistInDb(string parentPath)
+        {
+            if (parentPath.EndsWith("Root") == true)
+            {
+                return true;
+            }
+
+            int id = ShqConstants.GetPathId(parentPath);
+            if (id > 0)
+            {
+                return db.ProjectFiles.FirstOrDefault(item => item.Id == id) != null;
+            }
+
+            return false;
         }
 
         protected override void Dispose(bool disposing)

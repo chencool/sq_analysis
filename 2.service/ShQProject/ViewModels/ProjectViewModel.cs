@@ -29,8 +29,6 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         public string Description { get; set; }
 
-        public Guid WorkProjectTemplateId { get; set; }
-
         public string Tag { get; set; }
 
         [Required]

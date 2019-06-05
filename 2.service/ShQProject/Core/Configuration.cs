@@ -40,7 +40,15 @@ namespace Dxc.Shq.WebApi.Core
                 userRoleId = context.Roles.First(c => c.Name == "User").Id;
             }
 
-            if(!context.FTANodeTypes.Any())
+            if (!context.WorkProjectTemplates.Any())
+            {
+                context.WorkProjectTemplates.Add(new WorkProjectTemplate() { Id = ShqConstants.DefaultWorkProjectTemplateId,
+                    Name="default template",
+                    Description = "default template"
+                });
+            }
+
+            if (!context.FTANodeTypes.Any())
             {
                 context.FTANodeTypes.Add(new FTANodeType() { Id = 1, Description = "ROOT" });
                 context.FTANodeTypes.Add(new FTANodeType() { Id = 2, Description = "BRANCH" });

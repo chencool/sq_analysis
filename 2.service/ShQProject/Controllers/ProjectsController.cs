@@ -159,7 +159,7 @@ namespace Dxc.Shq.WebApi.Controllers
 
             if (project.Type == "WorkProject")
             {
-                db.WorkProjects.Add(new WorkProject() { Id = Guid.NewGuid(), ProjectId = projectView.Id, CreatedById = project.CreatedById, LastModifiedById = project.LastModifiedById ,WorkProjectTemplateId= projectView.WorkProjectTemplateId});
+                db.WorkProjects.Add(new WorkProject() { Id = Guid.NewGuid(), ProjectId = projectView.Id, CreatedById = project.CreatedById, LastModifiedById = project.LastModifiedById ,WorkProjectTemplateId= ShqConstants.DefaultWorkProjectTemplateId});
             }
 
             int i = 0;

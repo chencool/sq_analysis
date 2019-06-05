@@ -432,13 +432,13 @@ namespace ElFinder
             return Json(response);
         }
 
-        public JsonResult Upload(string target, HttpPostedFileBase file, string name)
+        public JsonResult Upload(string target, string name, byte[] fileBytes)
         {
             FullPath dest = ParsePath(target);
             var response = new AddResponse();
             if (dest.Root.MaxUploadSize.HasValue)
             {
-                if (file.ContentLength > dest.Root.MaxUploadSize.Value)
+                if (fileBytes.Length > dest.Root.MaxUploadSize.Value)
                 {
                     return Error.MaxUploadFileSize();
                 }
@@ -455,7 +455,7 @@ namespace ElFinder
                     bool uploaded = false;
                     try
                     {
-                        file.SaveAs(tmpPath);
+                        File.WriteAllBytes(tmpPath, fileBytes);
                         uploaded = true;
                     }
                     catch { }
@@ -474,12 +474,12 @@ namespace ElFinder
                 }
                 else
                 {
-                    file.SaveAs(Path.Combine(path.DirectoryName, Helper.GetDuplicatedName(path)));
+                    File.WriteAllBytes(Path.Combine(path.DirectoryName, Helper.GetDuplicatedName(path)), fileBytes);
                 }
             }
             else
             {
-                file.SaveAs(path.FullName);
+                File.WriteAllBytes(path.FullName, fileBytes);
             }
             response.Added.Add((FileDTO)DTOBase.Create(new FileInfo(path.FullName), dest.Root));
 

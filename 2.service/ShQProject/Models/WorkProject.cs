@@ -18,7 +18,7 @@ namespace Dxc.Shq.WebApi.Models
         public Project Project { get; set; }
 
         [ForeignKey("WorkProjectTemplate")]
-        public Guid? WorkProjectTemplateId { get; set; }
+        public Guid WorkProjectTemplateId { get; set; }
 
         public WorkProjectTemplate WorkProjectTemplate { get; set; }
 
@@ -26,6 +26,8 @@ namespace Dxc.Shq.WebApi.Models
 
         public int FilesToCopyNum { get; set; }
         public int FilesCopiedNum { get; set; }
+
+        public virtual List<ProjectFile> ProjectFiles { get; set; } = new List<ProjectFile>();
 
         public virtual List<FTAProject> FTAProjects { get; set; } = new List<FTAProject>();
 
