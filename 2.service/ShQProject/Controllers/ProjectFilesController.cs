@@ -90,6 +90,11 @@ namespace Dxc.Shq.WebApi.Controllers
                     throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
                 }
 
+                if (einfo.cmd != "dowloadFile" && ProjectHelper.HasUpdateAccess(pro) == false)
+                {
+                    throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
+                }
+
                 folder = ShqConstants.ProjectRootFolder + "\\" + einfo.ProjectId + "\\" + einfo.TartgetPath;
                 wp = db.WorkProjects.FirstOrDefault(item => item.ProjectId == einfo.ProjectId);
                 workProjectId = wp.Id;
@@ -402,6 +407,19 @@ namespace Dxc.Shq.WebApi.Controllers
         [Route("api/ProjectFiles/Sync")]
         public async Task<IHttpActionResult> SyncProjectFiles(Guid projectId)
         {
+            var pro = db.Projects.FirstOrDefault(item => item.Id == projectId);
+            if (pro != null)
+            {
+                if (ProjectHelper.HasUpdateAccess(pro) == false)
+                {
+                    throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
+                }
+            }
+            else
+            {
+                return NotFound();
+            }
+
             string path = ShqConstants.ProjectRootFolder + "\\" + projectId;
             if (Directory.Exists(path) == false)
             {
@@ -530,6 +548,27 @@ namespace Dxc.Shq.WebApi.Controllers
             await db.SaveChangesAsync();
 
             return Ok();
+        }
+
+        [HttpGet]
+        [Route("api/ProjectFiles/SyncStatus")]
+        public async Task<IHttpActionResult> GetProjectFilesSyncStatus(Guid projectId)
+        {
+            var pro = db.Projects.FirstOrDefault(item => item.Id == projectId);
+            if (pro != null)
+            {
+                if (ProjectHelper.HasReadAccess(pro) == false)
+                {
+                    throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
+                }
+            }
+            else
+            {
+                return NotFound();
+            }
+
+            var wp = db.WorkProjects.Where(item => item.ProjectId == projectId).Select(x=>new { filesToCopyNum = x.FilesToCopyNum, filesCopiedNum = x.FilesCopiedNum }).ToList();
+            return Ok(wp[0]);
         }
 
         private bool CheckIfParentExistInDb(string parentPath)
