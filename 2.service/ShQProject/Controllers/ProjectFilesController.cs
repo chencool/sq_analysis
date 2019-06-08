@@ -567,8 +567,8 @@ namespace Dxc.Shq.WebApi.Controllers
                 return NotFound();
             }
 
-            var wp = db.WorkProjects.Where(item => item.ProjectId == projectId).Select(x=>new { filesToCopyNum = x.FilesToCopyNum, filesCopiedNum = x.FilesCopiedNum }).ToList();
-            return Ok(wp[0]);
+            var wp = db.WorkProjects.FirstOrDefault(item => item.ProjectId == projectId);
+            return Ok(new { projectId = wp.ProjectId, filesToCopyNum = wp.FilesToCopyNum, filesCopiedNum = wp.FilesCopiedNum });
         }
 
         private bool CheckIfParentExistInDb(string parentPath)
