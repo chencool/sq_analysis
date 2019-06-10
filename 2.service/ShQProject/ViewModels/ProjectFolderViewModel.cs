@@ -23,6 +23,8 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         public int Level { get; set; }
 
+        public int Privilege { get; set; }
+
         public ProjectFolderViewModel()
         {
 
@@ -51,6 +53,7 @@ namespace Dxc.Shq.WebApi.ViewModels
                     LastModifiedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == db.ProjectFiles.FirstOrDefault(item => item.Id == Id).LastModifiedById).FirstOrDefault(), db);
                     LastModfiedTime = f.LastModfiedTime.ToString();
 
+                    this.Privilege = f.Privilege;
                     this.Level = f.Level;
                 }
             }

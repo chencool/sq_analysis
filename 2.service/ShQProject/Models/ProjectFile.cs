@@ -30,6 +30,8 @@ namespace Dxc.Shq.WebApi.Models
         public string Description { get; set; }
 
         public int Level { get; set; }
+        
+        public int Privilege { get; set; }
 
         /// <summary>
         /// 1 means deleted

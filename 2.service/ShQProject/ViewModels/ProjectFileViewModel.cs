@@ -18,6 +18,8 @@ namespace Dxc.Shq.WebApi.ViewModels
 
         public int Level { get; set; }
 
+        public int Privilege { get; set; }
+
         public long Size { get; set; }
 
         public ProjectFileViewModel()
@@ -47,6 +49,8 @@ namespace Dxc.Shq.WebApi.ViewModels
                 }
                 else
                 {
+                    this.Privilege = f.Privilege;
+
                     CreatedBy = new ShqUserRequestViewModel(db.ShqUsers.Where(u => u.IdentityUser.Id == db.ProjectFiles.FirstOrDefault(item => item.Id == Id).CreatedById).FirstOrDefault(), db);
                     CreatedTime = f.CreatedTime.ToString();
 

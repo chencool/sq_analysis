@@ -9,8 +9,10 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
+using System.Web.Http.Results;
 using Dxc.Shq.WebApi.Core;
 using Dxc.Shq.WebApi.Models;
+using Dxc.Shq.WebApi.ViewModels;
 
 namespace Dxc.Shq.WebApi.Controllers
 {
@@ -18,140 +20,142 @@ namespace Dxc.Shq.WebApi.Controllers
     {
         private ShqContext db = new ShqContext();
 
-        // GET: api/WorkProjects
-        public IQueryable<WorkProject> GetWorkProjects()
+        [HttpGet]
+        [Route("api/WorkProjects/GetWorkProject")]
+        [ResponseType(typeof(WorkProjectViewModel))]
+        public async Task<IHttpActionResult> GetWorkProject(Guid projectId)
         {
-            return db.WorkProjects;
-        }
-
-        // GET: api/WorkProjects/5
-        [ResponseType(typeof(WorkProject))]
-        public async Task<IHttpActionResult> GetWorkProject(Guid id)
-        {
-            WorkProject workProject = await db.WorkProjects.FindAsync(id);
+            WorkProject workProject = await db.WorkProjects.Include("Project").FirstOrDefaultAsync(item => item.ProjectId == projectId);
             if (workProject == null)
             {
                 return NotFound();
             }
 
-            return Ok(workProject);
+            if (ProjectHelper.HasReadAccess(workProject.Project) == false)
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
+            }
+            var model = new WorkProjectViewModel(workProject, db);
+            ProjectFilesController pfc = new ProjectFilesController();
+            var obj =(OkNegotiatedContentResult<ProjectFolderViewModel>)pfc.GetProjectFiles(projectId,"Root", System.IO.SearchOption.AllDirectories).Result;
+            model.ProjectFiles = obj.Content;
+            return Ok(model);
         }
 
-        // POST: api/WorkProjects
+        /// <summary>
+        /// link a fta or fmea project to a work project
+        /// </summary>
+        /// <param name="linkedProjectId">the fta or fmea project id</param>
+        /// <param name="workProjectId">the work project id</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("api/WorkProjects/AddLinkedProject")]
         [ResponseType(typeof(WorkProject))]
-        public async Task<IHttpActionResult> AddFTA(WorkProject workProject)
+        public async Task<IHttpActionResult> AddLinkedProject(Guid linkedProjectId, Guid workProjectId)
         {
-            if (!ModelState.IsValid)
+            WorkProject workProject = await db.WorkProjects.Include("Project").FirstOrDefaultAsync(item => item.ProjectId == workProjectId);
+            if (workProject == null)
             {
-                return BadRequest(ModelState);
+                return NotFound();
             }
 
-            db.WorkProjects.Add(workProject);
-
-            try
+            if (ProjectHelper.HasUpdateAccess(workProject.Project) == false)
             {
-                await db.SaveChangesAsync();
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
             }
-            catch (DbUpdateException)
+
+            Project project = await db.Projects.FirstOrDefaultAsync(item => item.Id == linkedProjectId);
+            if (project == null)
             {
-                if (WorkProjectExists(workProject.Id))
+                return NotFound();
+            }
+            if (ProjectHelper.HasUpdateAccess(project) == false)
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
+            }
+
+            var fta = db.FTAProjects.FirstOrDefault(item => item.ProjectId == linkedProjectId);
+            if(fta != null)
+            {
+                if(workProject.FTAProjects.FirstOrDefault(item => item.ProjectId == linkedProjectId)==null)
                 {
-                    return Conflict();
+                    workProject.FTAProjects.Add(fta);
                 }
-                else
+            }
+            else
+            {
+                var fmea = db.FMEAProjects.FirstOrDefault(item => item.ProjectId == linkedProjectId);
+                if(fmea != null)
                 {
-                    throw;
+                    if (workProject.FMEAProjects.FirstOrDefault(item => item.ProjectId == linkedProjectId) == null)
+                    {
+                        workProject.FMEAProjects.Add(fmea);
+                    }
                 }
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = workProject.Id }, workProject);
+            db.SaveChanges();
+
+            var model = new WorkProjectViewModel(workProject, db);
+            ProjectFilesController pfc = new ProjectFilesController();
+            var obj = (OkNegotiatedContentResult<ProjectFolderViewModel>)pfc.GetProjectFiles(workProjectId, "Root", System.IO.SearchOption.AllDirectories).Result;
+            model.ProjectFiles = obj.Content;
+            return Ok(model);
         }
 
+        /// <summary>
+        /// unlink a fta or fmea project from a work project
+        /// </summary>
+        /// <param name="linkedProjectId">the fta or fmea project id</param>
+        /// <param name="workProjectId">the work project id</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("api/WorkProjects/RemoveLinkedProject")]
         [ResponseType(typeof(WorkProject))]
-        public async Task<IHttpActionResult> RemoveFTA(WorkProject workProject)
+        public async Task<IHttpActionResult> RemoveLinkedProject(Guid linkedProjectId, Guid workProjectId)
         {
-            if (!ModelState.IsValid)
+            WorkProject workProject = await db.WorkProjects.Include("Project").FirstOrDefaultAsync(item => item.ProjectId == workProjectId);
+            if (workProject == null)
             {
-                return BadRequest(ModelState);
+                return NotFound();
             }
 
-            db.WorkProjects.Add(workProject);
-
-            try
+            if (ProjectHelper.HasUpdateAccess(workProject.Project) == false)
             {
-                await db.SaveChangesAsync();
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
             }
-            catch (DbUpdateException)
+
+            Project project = await db.Projects.FirstOrDefaultAsync(item => item.Id == linkedProjectId);
+            if (project == null)
             {
-                if (WorkProjectExists(workProject.Id))
+                return NotFound();
+            }
+            if (ProjectHelper.HasUpdateAccess(project) == false)
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.Forbidden, "No Access"));
+            }
+
+            var fta = workProject.FTAProjects.FirstOrDefault(item => item.ProjectId == linkedProjectId);
+            if (fta != null)
+            {
+                workProject.FTAProjects.Remove(fta);
+            }
+            else
+            {
+                var fmea = workProject.FMEAProjects.FirstOrDefault(item => item.ProjectId == linkedProjectId);
+                if (fmea != null)
                 {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return CreatedAtRoute("DefaultApi", new { id = workProject.Id }, workProject);
-        }
-
-        [ResponseType(typeof(WorkProject))]
-        public async Task<IHttpActionResult> AddFMEA(WorkProject workProject)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            db.WorkProjects.Add(workProject);
-
-            try
-            {
-                await db.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (WorkProjectExists(workProject.Id))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
+                    workProject.FMEAProjects.Remove(fmea);
                 }
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = workProject.Id }, workProject);
-        }
+            db.SaveChanges();
 
-        [ResponseType(typeof(WorkProject))]
-        public async Task<IHttpActionResult> RemoveFMEA(WorkProject workProject)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            db.WorkProjects.Add(workProject);
-
-            try
-            {
-                await db.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (WorkProjectExists(workProject.Id))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return CreatedAtRoute("DefaultApi", new { id = workProject.Id }, workProject);
+            var model = new WorkProjectViewModel(workProject, db);
+            ProjectFilesController pfc = new ProjectFilesController();
+            var obj = (OkNegotiatedContentResult<ProjectFolderViewModel>)pfc.GetProjectFiles(workProjectId, "Root", System.IO.SearchOption.AllDirectories).Result;
+            model.ProjectFiles = obj.Content;
+            return Ok(model);
         }
 
         protected override void Dispose(bool disposing)

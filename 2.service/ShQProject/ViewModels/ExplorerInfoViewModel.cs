@@ -24,12 +24,12 @@ namespace Dxc.Shq.WebApi.ViewModels
         [Required]
         public string TartgetPath { get; set; }
 
-        [Required]
         /// <summary>
         /// project id, the default template project id is always 1b2cd8ab-6d6c-4a05-931b-e40607bd8b19
         /// the default template will be used by all projects and managed by admin only.
         /// All other project files will be copied from this template by its level.
         /// </summary>
+        [Required]
         public Guid ProjectId { get; set; }
 
         /// <summary>
@@ -46,6 +46,11 @@ namespace Dxc.Shq.WebApi.ViewModels
         /// file or folder level
         /// </summary>
         public int Level { get; set; }
+
+        /// <summary>
+        /// access Privilege
+        /// </summary>
+        public int Privilege { get; set; }
 
         /// <summary>
         /// "createFolder"

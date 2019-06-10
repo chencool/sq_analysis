@@ -134,7 +134,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 return Ok("已存在");
             }
 
-            pro = await db.Projects.FirstOrDefaultAsync(item=>item.ProjectName == projectView.Name);
+            pro = await db.Projects.FirstOrDefaultAsync(item => item.ProjectName == projectView.Name);
             if (pro != null)
             {
                 return Ok("已存在");
@@ -159,7 +159,16 @@ namespace Dxc.Shq.WebApi.Controllers
 
             if (project.Type == "WorkProject")
             {
-                db.WorkProjects.Add(new WorkProject() { Id = Guid.NewGuid(), ProjectId = projectView.Id, CreatedById = project.CreatedById, LastModifiedById = project.LastModifiedById ,WorkProjectTemplateId= ShqConstants.DefaultWorkProjectTemplateId});
+                var wp = db.WorkProjects.Add(new WorkProject() { Id = Guid.NewGuid(), ProjectId = projectView.Id, CreatedById = project.CreatedById, LastModifiedById = project.LastModifiedById, WorkProjectTemplateId = ShqConstants.DefaultWorkProjectTemplateId });
+                db.SaveChanges();
+                try
+                {
+                    ProjectFilesController pfc = new ProjectFilesController();
+                    await pfc.SyncProjectFiles(wp.ProjectId);
+                }
+                catch (Exception)
+                {
+                }
             }
 
             int i = 0;
@@ -177,7 +186,7 @@ namespace Dxc.Shq.WebApi.Controllers
                         LastModifiedById = project.CreatedById
                     };
                     newAccess.LastModifiedById = newAccess.CreatedById;
-                   db.ProjectShqUsers.Add(newAccess);
+                    db.ProjectShqUsers.Add(newAccess);
                 }
             }
 

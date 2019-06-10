@@ -33,6 +33,7 @@ namespace Dxc.Shq.WebApi.Controllers
         /// <param name="searchOption">0 for sub folder, 1 for all children folders</param>
         /// <returns></returns>
         [Route("api/ProjectFiles")]
+        [ResponseType(typeof(ProjectFolderViewModel))]
         public async Task<IHttpActionResult> GetProjectFiles(Guid projectId, string path, SearchOption searchOption)
         {
             bool isTemplated = false;
@@ -163,11 +164,12 @@ namespace Dxc.Shq.WebApi.Controllers
                             {
                                 FileId = Guid.NewGuid(),
                                 Name = einfo.Name,
-                                Level = einfo.Level,
+                                Level = 0,
                                 IsFolder = true,
                                 Path = Path.Combine(folder, einfo.Name),
                                 WorkProjectId = workProjectId,
                                 WorkProjectTemplateId = worktemplateid,
+                                Privilege=einfo.Privilege,
                                 CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
                                 LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
                             });
@@ -272,15 +274,25 @@ namespace Dxc.Shq.WebApi.Controllers
                         }
 
                         driver.Rename(target, name);
-                        var f = db.ProjectFiles.FirstOrDefault(item => item.Id == einfo.Id
-                        && item.WorkProjectId == workProjectId
-                        && item.WorkProjectTemplateId == worktemplateid);
-                        if (f != null)
+                        string oldPath = Path.Combine(Directory.GetParent(folder).FullName, oldName);
+                        string newPath = Path.Combine(Directory.GetParent(folder).FullName, name);
+
+                        var userId = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
+                        var wpFiles = db.ProjectFiles.Where(item => item.WorkProjectId == workProjectId
+                        && item.WorkProjectTemplateId == worktemplateid
+                        && item.Path.Contains(oldPath) == true);
+                        if (wpFiles != null)
                         {
-                            f.Name = einfo.Name;
-                            f.Path = Path.Combine(Directory.GetParent(folder).FullName, name);
-                            f.LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId;
-                            f.LastModfiedTime = DateTime.Now;
+                            foreach (var f in wpFiles)
+                            {
+                                if (f.Id == einfo.Id)
+                                {
+                                    f.Name = einfo.Name;
+                                }
+                                f.Path = f.Path.Replace(oldPath, newPath);
+                                f.LastModifiedById = userId;
+                                f.LastModfiedTime = DateTime.Now;
+                            }
                         }
                         break;
                     }
@@ -313,6 +325,7 @@ namespace Dxc.Shq.WebApi.Controllers
                                 Path = Path.Combine(folder, name),
                                 WorkProjectId = workProjectId,
                                 WorkProjectTemplateId = worktemplateid,
+                                Privilege = einfo.Privilege,
                                 CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
                                 LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
                             });

@@ -142,6 +142,7 @@
     <Compile Include="ViewModels\ProjectViewModel.cs" />
     <Compile Include="ViewModels\ShqUserPasswordViewModel.cs" />
     <Compile Include="ViewModels\ShqUserViewModel.cs" />
+    <Compile Include="ViewModels\WorkProjectViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="keys.config">

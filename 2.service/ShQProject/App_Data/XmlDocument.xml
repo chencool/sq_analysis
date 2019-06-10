@@ -497,6 +497,22 @@
             <param name="einfo">JSON string by ExplorerInfoViewModel defined</param>
             <returns></returns>
         </member>
+        <member name="M:Dxc.Shq.WebApi.Controllers.WorkProjectsController.AddLinkedProject(System.Guid,System.Guid)">
+            <summary>
+            link a fta or fmea project to a work project
+            </summary>
+            <param name="linkedProjectId">the fta or fmea project id</param>
+            <param name="workProjectId">the work project id</param>
+            <returns></returns>
+        </member>
+        <member name="M:Dxc.Shq.WebApi.Controllers.WorkProjectsController.RemoveLinkedProject(System.Guid,System.Guid)">
+            <summary>
+            unlink a fta or fmea project from a work project
+            </summary>
+            <param name="linkedProjectId">the fta or fmea project id</param>
+            <param name="workProjectId">the work project id</param>
+            <returns></returns>
+        </member>
         <member name="P:Dxc.Shq.WebApi.Core.JsonFTAProperties.FailureRateQ">
             <summary>
             失效概率Q
@@ -577,6 +593,13 @@
             and you could use API "api/ProjectFiles" to get the folder or file's path
             </summary>
         </member>
+        <member name="P:Dxc.Shq.WebApi.ViewModels.ExplorerInfoViewModel.ProjectId">
+            <summary>
+            project id, the default template project id is always 1b2cd8ab-6d6c-4a05-931b-e40607bd8b19
+            the default template will be used by all projects and managed by admin only.
+            All other project files will be copied from this template by its level.
+            </summary>
+        </member>
         <member name="P:Dxc.Shq.WebApi.ViewModels.ExplorerInfoViewModel.Name">
             <summary>
             File or folder name
@@ -590,6 +613,11 @@
         <member name="P:Dxc.Shq.WebApi.ViewModels.ExplorerInfoViewModel.Level">
             <summary>
             file or folder level
+            </summary>
+        </member>
+        <member name="P:Dxc.Shq.WebApi.ViewModels.ExplorerInfoViewModel.Privilege">
+            <summary>
+            access Privilege
             </summary>
         </member>
         <member name="P:Dxc.Shq.WebApi.ViewModels.ExplorerInfoViewModel.cmd">
