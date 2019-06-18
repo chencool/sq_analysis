@@ -100,6 +100,7 @@ namespace Dxc.Shq.WebApi.Controllers
                 wp = db.WorkProjects.FirstOrDefault(item => item.ProjectId == einfo.ProjectId);
                 workProjectId = wp.Id;
                 worktemplateid = wp.WorkProjectTemplateId;
+                einfo.Privilege = 1;
             }
             else if (db.WorkProjectTemplates.FirstOrDefault(item => item.Id == einfo.ProjectId) != null)
             {
@@ -110,6 +111,7 @@ namespace Dxc.Shq.WebApi.Controllers
 
                 workProjectId = null;
                 worktemplateid = einfo.ProjectId;
+                einfo.Privilege = 0;
                 folder = ShqConstants.TemplateRootFolder + "\\" + worktemplateid + "\\" + einfo.TartgetPath;
             }
             else
@@ -169,7 +171,7 @@ namespace Dxc.Shq.WebApi.Controllers
                                 Path = Path.Combine(folder, einfo.Name),
                                 WorkProjectId = workProjectId,
                                 WorkProjectTemplateId = worktemplateid,
-                                Privilege=einfo.Privilege,
+                                Privilege = einfo.Privilege,
                                 CreatedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId,
                                 LastModifiedById = db.ShqUsers.Where(u => u.IdentityUser.UserName == HttpContext.Current.User.Identity.Name).FirstOrDefault().IdentityUserId
                             });
