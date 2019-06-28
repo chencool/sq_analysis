@@ -448,7 +448,7 @@ namespace Dxc.Shq.WebApi.Controllers
             }
 
             var wp = db.WorkProjects.Include("WorkProjectTemplate").FirstOrDefault(item => item.ProjectId == projectId);
-            var sourceFiles = wp.WorkProjectTemplate.ProjectFiles.Where(item => item.Status == (int)ShqConstants.FileStatus.Ready && item.Level <= wp.Level).ToList();
+            var sourceFiles = wp.WorkProjectTemplate.ProjectFiles.Where(item => item.Status == (int)ShqConstants.FileStatus.Ready && (item.Level & wp.Level) == wp.Level).ToList();
             wp.FilesToCopyNum = sourceFiles.Count();
             wp.FilesCopiedNum = 0;
 
